@@ -3,6 +3,8 @@ use std::process::Command;
 use regex;
 use std::io;
 
+use notify_rust::{Hint, Notification};
+
 fn upower_command() -> Result<String, io::Error> {
     let output = Command::new("upower")
         .args(["-i", "/org/freedesktop/UPower/devices/battery_BAT1"])
@@ -24,5 +26,17 @@ fn battery_percentage(output: &String) -> Option<i32> {
 fn main() {
     let output = upower_command().expect("cannot get battery data");
     let percentage = battery_percentage(&output).expect("could not process battery output");
-    println!("{:?}", percentage)
+
+    Notification::new()
+        .summary("Charge limit warning")
+        .body(&format!(
+            "Battery percentage already at {}%, you might want to unplug your charger",
+            percentage.to_string()
+        ))
+        .icon("clion")
+        .appname("rusty-battery")
+        .hint(Hint::Category("device".to_owned()))
+        .timeout(0)
+        .show()
+        .unwrap();
 }
