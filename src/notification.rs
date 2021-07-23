@@ -1,4 +1,4 @@
-use notify_rust::{Hint, Notification};
+use notify_rust::{Hint, Notification, NotificationHandle, Urgency};
 use std::fmt;
 
 #[derive(Debug)]
@@ -20,8 +20,8 @@ impl From<notify_rust::error::Error> for NotificationError {
     }
 }
 
-pub fn notify(battery_percentage: i32) -> Result<(), NotificationError> {
-    Notification::new()
+pub fn notification(battery_percentage: i32) -> Result<NotificationHandle, NotificationError> {
+    let handle = Notification::new()
         .summary("Charge limit warning")
         .body(&format!(
             "Battery percentage already at {}%, you might want to unplug your charger",
@@ -30,8 +30,10 @@ pub fn notify(battery_percentage: i32) -> Result<(), NotificationError> {
         .icon("administration")
         .appname("rusty-battery")
         .hint(Hint::Category("device".to_owned()))
+        .urgency(Urgency::Critical)
         .timeout(0)
+        .finalize()
         .show()?;
 
-    Ok(())
+    Ok(handle)
 }
