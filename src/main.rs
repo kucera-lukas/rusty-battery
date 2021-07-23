@@ -1,13 +1,12 @@
-mod battery;
+pub mod battery;
 mod cli;
+mod event;
 mod notification;
+
+use notify_rust::NotificationHandle;
 
 fn main() {
     let opts: cli::Opts = cli::parse();
 
-    let percentage = battery::get_battery_percentage().expect("could not process battery output");
-
-    if percentage >= opts.threshold {
-        notification::notify(percentage);
-    }
+    event::event_loop(opts.threshold).unwrap()
 }
