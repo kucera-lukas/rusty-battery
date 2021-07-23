@@ -1,6 +1,6 @@
 use std::{fmt, io, num, process::Command};
 
-use regex::Regex;
+use regex::{Captures, Regex};
 use std::fmt::Formatter;
 
 #[derive(Debug)]
@@ -46,6 +46,57 @@ impl From<fmt::Error> for BatteryError {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub enum State {
+    CHARGING,
+    DISCHARGING,
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            State::CHARGING => write!(f, "Charging"),
+            State::DISCHARGING => write!(f, "Discharging"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Info {
+    pub percentage: i32,
+    pub state: State,
+}
+
+impl Info {
+    pub fn new() -> Result<Info, BatteryError> {
+        let output = upower_command()?;
+
+        Ok(Info {
+            percentage: battery_percentage(&output)?,
+            state: battery_state(&output)?,
+        })
+    }
+
+    pub fn refresh(&mut self) -> Result<(), BatteryError> {
+        let new_info = Info::new()?;
+
+        self.percentage = new_info.percentage;
+        self.state = new_info.state;
+
+        Ok(())
+    }
+}
+
+impl fmt::Display for Info {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Battery percentage: {}, State: {}",
+            self.percentage, self.state,
+        )
+    }
+}
+
 fn upower_command() -> Result<String, BatteryError> {
     let output = Command::new("upower")
         .args(["-i", "/org/freedesktop/UPower/devices/battery_BAT1"])
@@ -54,16 +105,27 @@ fn upower_command() -> Result<String, BatteryError> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-fn battery_percentage(output: &String) -> Result<i32, BatteryError> {
-    let re = Regex::new(r".*percentage:\s+?(\d+)%.*")?;
+fn output_captures<'a>(output: &'a str, re: &str) -> Result<Captures<'a>, BatteryError> {
+    let re = Regex::new(re)?;
     let caps = re.captures(output).ok_or_else(|| fmt::Error)?;
 
+    Ok(caps)
+}
+
+fn battery_percentage(output: &str) -> Result<i32, BatteryError> {
+    let caps = output_captures(output, r".*percentage:\s+?(\d+)%.*")?;
     Ok(caps.get(1).ok_or_else(|| fmt::Error)?.as_str().parse()?)
 }
 
-pub fn get_battery_percentage() -> Result<i32, BatteryError> {
-    let output = upower_command()?;
-    let result = battery_percentage(&output)?;
+fn battery_state(output: &String) -> Result<State, BatteryError> {
+    let caps = output_captures(output, r".*state:\s+?([a-z]+).*")?;
+    let state = caps.get(1).ok_or_else(|| fmt::Error)?.as_str();
+
+    let result = match state {
+        "charging" => State::CHARGING,
+        "discharging" => State::DISCHARGING,
+        _ => return Err(BatteryError::Output(fmt::Error)),
+    };
 
     Ok(result)
 }
