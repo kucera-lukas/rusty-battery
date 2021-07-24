@@ -9,18 +9,22 @@ pub enum NotificationError {
 impl fmt::Display for NotificationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            NotificationError::Notify(ref err) => write!(f, "NotifyRust Error: {}", err),
+            Self::Notify(ref err) => {
+                write!(f, "NotifyRust Error: {}", err)
+            }
         }
     }
 }
 
 impl From<notify_rust::error::Error> for NotificationError {
     fn from(err: notify_rust::error::Error) -> Self {
-        NotificationError::Notify(err)
+        Self::Notify(err)
     }
 }
 
-pub fn notification(battery_percentage: i32) -> Result<NotificationHandle, NotificationError> {
+pub fn notification(
+    battery_percentage: i32,
+) -> Result<NotificationHandle, NotificationError> {
     let handle = Notification::new()
         .summary("Charge limit warning")
         .body(&format!(

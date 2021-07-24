@@ -15,28 +15,32 @@ pub enum BatteryError {
 impl fmt::Display for BatteryError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            BatteryError::Command(ref err) => write!(f, "Command Error: {}", err),
-            BatteryError::ParseInt(ref err) => write!(f, "ParseInt Error: {}", err),
-            BatteryError::Output(ref err) => write!(f, "Output Error {}", err),
+            Self::Command(ref err) => {
+                write!(f, "Command Error: {}", err)
+            }
+            Self::ParseInt(ref err) => {
+                write!(f, "ParseInt Error: {}", err)
+            }
+            Self::Output(ref err) => write!(f, "Output Error {}", err),
         }
     }
 }
 
 impl From<io::Error> for BatteryError {
     fn from(err: io::Error) -> Self {
-        BatteryError::Command(err)
+        Self::Command(err)
     }
 }
 
 impl From<num::ParseIntError> for BatteryError {
     fn from(err: num::ParseIntError) -> Self {
-        BatteryError::ParseInt(err)
+        Self::ParseInt(err)
     }
 }
 
 impl From<fmt::Error> for BatteryError {
     fn from(err: fmt::Error) -> Self {
-        BatteryError::Output(err)
+        Self::Output(err)
     }
 }
 
@@ -63,10 +67,10 @@ pub struct Info {
 
 impl Info {
     /// Construct a new `Info` instance.
-    pub fn new() -> Result<Info, BatteryError> {
+    pub fn new() -> Result<Self, BatteryError> {
         let output = upower_command()?;
 
-        Ok(Info {
+        Ok(Self {
             percentage: battery_percentage(&output)?,
             state: battery_state(&output)?,
         })
@@ -74,7 +78,7 @@ impl Info {
 
     /// Update attributes to current battery values.
     pub fn refresh(&mut self) -> Result<(), BatteryError> {
-        let new_info = Info::new()?;
+        let new_info = Self::new()?;
 
         self.percentage = new_info.percentage;
         self.state = new_info.state;
@@ -125,7 +129,8 @@ fn battery_state(output: &str) -> Result<State, BatteryError> {
 /// Return percentage `Captures` from `UPower` command via `Regex`.
 fn percentage_caps(output: &str) -> Option<Captures> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r".*percentage:\s+?(\d+)%.*").unwrap();
+        static ref RE: Regex =
+            Regex::new(r".*percentage:\s+?(\d+)%.*").unwrap();
     }
     RE.captures(output)
 }
@@ -139,11 +144,13 @@ fn status_caps(output: &str) -> Option<Captures> {
 }
 
 /// Turn `Capture` into a `Result` and return it as a `str`.
-fn caps_to_str<'a>(caps: &'a Option<Captures>) -> Result<&'a str, BatteryError> {
+fn caps_to_str<'a>(
+    caps: &'a Option<Captures>,
+) -> Result<&'a str, BatteryError> {
     Ok(caps
         .as_ref()
-        .ok_or_else(|| fmt::Error)?
+        .ok_or(fmt::Error)?
         .get(1)
-        .ok_or_else(|| fmt::Error)?
+        .ok_or(fmt::Error)?
         .as_str())
 }

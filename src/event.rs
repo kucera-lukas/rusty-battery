@@ -12,21 +12,25 @@ pub enum EventError {
 impl fmt::Display for EventError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            EventError::Battery(ref err) => write!(f, "Battery Error: {}", err),
-            EventError::Notification(ref err) => write! {f, "Event Error: {}", err},
+            Self::Battery(ref err) => {
+                write!(f, "Battery Error: {}", err)
+            }
+            Self::Notification(ref err) => {
+                write! {f, "Event Error: {}", err}
+            }
         }
     }
 }
 
 impl From<BatteryError> for EventError {
     fn from(err: BatteryError) -> Self {
-        EventError::Battery(err)
+        Self::Battery(err)
     }
 }
 
 impl From<NotificationError> for EventError {
     fn from(err: NotificationError) -> Self {
-        EventError::Notification(err)
+        Self::Notification(err)
     }
 }
 
@@ -63,7 +67,8 @@ fn above_threshold(manager: &mut Manager) -> Result<(), EventError> {
     while manager.battery_info.percentage >= manager.threshold {
         let state = &manager.battery_info.state;
         if *state == battery::State::CHARGING {
-            let handle = notification::notification(manager.battery_info.percentage)?;
+            let handle =
+                notification::notification(manager.battery_info.percentage)?;
 
             // If user unplugs charger we can close notification.
             sleep(5);
