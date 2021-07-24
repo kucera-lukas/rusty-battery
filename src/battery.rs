@@ -1,4 +1,5 @@
-use std::fmt::Formatter;
+//! Battery information.
+
 use std::{fmt, io, num, process::Command};
 
 use lazy_static::lazy_static;
@@ -12,7 +13,7 @@ pub enum BatteryError {
 }
 
 impl fmt::Display for BatteryError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             BatteryError::Command(ref err) => write!(f, "Command Error: {}", err),
             BatteryError::ParseInt(ref err) => write!(f, "ParseInt Error: {}", err),
@@ -46,7 +47,7 @@ pub enum State {
 }
 
 impl fmt::Display for State {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             State::CHARGING => write!(f, "Charging"),
             State::DISCHARGING => write!(f, "Discharging"),
@@ -61,6 +62,7 @@ pub struct Info {
 }
 
 impl Info {
+    /// Construct a new `Info` instance.
     pub fn new() -> Result<Info, BatteryError> {
         let output = upower_command()?;
 
@@ -70,6 +72,7 @@ impl Info {
         })
     }
 
+    /// Update attributes to current battery values.
     pub fn refresh(&mut self) -> Result<(), BatteryError> {
         let new_info = Info::new()?;
 
@@ -81,15 +84,16 @@ impl Info {
 }
 
 impl fmt::Display for Info {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Battery percentage: {}, State: {}",
+            "Battery percentage: {}%, State: {}",
             self.percentage, self.state,
         )
     }
 }
 
+/// Return `UPower` command output.
 fn upower_command() -> Result<String, BatteryError> {
     let output = Command::new("upower")
         .args(["-i", "/org/freedesktop/UPower/devices/battery_BAT1"])
@@ -98,34 +102,13 @@ fn upower_command() -> Result<String, BatteryError> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-fn percentage_caps(output: &str) -> Option<Captures> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r".*percentage:\s+?(\d+)%.*").unwrap();
-    }
-    RE.captures(output)
-}
-
-fn status_caps(output: &str) -> Option<Captures> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r".*state:\s+?([a-z]+).*").unwrap();
-    }
-    RE.captures(output)
-}
-
-fn caps_to_str<'a>(caps: &'a Option<Captures>) -> Result<&'a str, BatteryError> {
-    Ok(caps
-        .as_ref()
-        .ok_or_else(|| fmt::Error)?
-        .get(1)
-        .ok_or_else(|| fmt::Error)?
-        .as_str())
-}
-
+/// Return current battery percentage.
 fn battery_percentage(output: &str) -> Result<i32, BatteryError> {
     let caps = percentage_caps(output);
     Ok(caps_to_str(&caps)?.parse()?)
 }
 
+/// Return current battery state as the `State` enum.
 fn battery_state(output: &str) -> Result<State, BatteryError> {
     let caps = status_caps(output);
     let state = caps_to_str(&caps)?;
@@ -137,4 +120,30 @@ fn battery_state(output: &str) -> Result<State, BatteryError> {
     };
 
     Ok(result)
+}
+
+/// Return percentage `Captures` from `UPower` command via `Regex`.
+fn percentage_caps(output: &str) -> Option<Captures> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r".*percentage:\s+?(\d+)%.*").unwrap();
+    }
+    RE.captures(output)
+}
+
+/// Return status `Captures` from `UPower` command via `Regex`.
+fn status_caps(output: &str) -> Option<Captures> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r".*state:\s+?([a-z]+).*").unwrap();
+    }
+    RE.captures(output)
+}
+
+/// Turn `Capture` into a `Result` and return it as a `str`.
+fn caps_to_str<'a>(caps: &'a Option<Captures>) -> Result<&'a str, BatteryError> {
+    Ok(caps
+        .as_ref()
+        .ok_or_else(|| fmt::Error)?
+        .get(1)
+        .ok_or_else(|| fmt::Error)?
+        .as_str())
 }
