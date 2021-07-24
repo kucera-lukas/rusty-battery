@@ -1,13 +1,13 @@
+use std::fmt::Formatter;
 use std::{fmt, io, num, process::Command};
 
+use lazy_static::lazy_static;
 use regex::{Captures, Regex};
-use std::fmt::Formatter;
 
 #[derive(Debug)]
 pub enum BatteryError {
     Command(io::Error),
     ParseInt(num::ParseIntError),
-    Regex(regex::Error),
     Output(fmt::Error),
 }
 
@@ -16,7 +16,6 @@ impl fmt::Display for BatteryError {
         match self {
             BatteryError::Command(ref err) => write!(f, "Command Error: {}", err),
             BatteryError::ParseInt(ref err) => write!(f, "ParseInt Error: {}", err),
-            BatteryError::Regex(ref err) => write!(f, "Regex Error: {}", err),
             BatteryError::Output(ref err) => write!(f, "Output Error {}", err),
         }
     }
@@ -31,12 +30,6 @@ impl From<io::Error> for BatteryError {
 impl From<num::ParseIntError> for BatteryError {
     fn from(err: num::ParseIntError) -> Self {
         BatteryError::ParseInt(err)
-    }
-}
-
-impl From<regex::Error> for BatteryError {
-    fn from(err: regex::Error) -> Self {
-        BatteryError::Regex(err)
     }
 }
 
@@ -105,21 +98,37 @@ fn upower_command() -> Result<String, BatteryError> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-fn output_captures<'a>(output: &'a str, re: &str) -> Result<Captures<'a>, BatteryError> {
-    let re = Regex::new(re)?;
-    let caps = re.captures(output).ok_or_else(|| fmt::Error)?;
+fn percentage_caps(output: &str) -> Option<Captures> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r".*percentage:\s+?(\d+)%.*").unwrap();
+    }
+    RE.captures(output)
+}
 
-    Ok(caps)
+fn status_caps(output: &str) -> Option<Captures> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r".*state:\s+?([a-z]+).*").unwrap();
+    }
+    RE.captures(output)
+}
+
+fn caps_to_str<'a>(caps: &'a Option<Captures>) -> Result<&'a str, BatteryError> {
+    Ok(caps
+        .as_ref()
+        .ok_or_else(|| fmt::Error)?
+        .get(1)
+        .ok_or_else(|| fmt::Error)?
+        .as_str())
 }
 
 fn battery_percentage(output: &str) -> Result<i32, BatteryError> {
-    let caps = output_captures(output, r".*percentage:\s+?(\d+)%.*")?;
-    Ok(caps.get(1).ok_or_else(|| fmt::Error)?.as_str().parse()?)
+    let caps = percentage_caps(output);
+    Ok(caps_to_str(&caps)?.parse()?)
 }
 
-fn battery_state(output: &String) -> Result<State, BatteryError> {
-    let caps = output_captures(output, r".*state:\s+?([a-z]+).*")?;
-    let state = caps.get(1).ok_or_else(|| fmt::Error)?.as_str();
+fn battery_state(output: &str) -> Result<State, BatteryError> {
+    let caps = status_caps(output);
+    let state = caps_to_str(&caps)?;
 
     let result = match state {
         "charging" => State::CHARGING,

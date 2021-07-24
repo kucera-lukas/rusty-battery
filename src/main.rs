@@ -1,4 +1,4 @@
-pub mod battery;
+mod battery;
 mod cli;
 mod event;
 mod notification;
