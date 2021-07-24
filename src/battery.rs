@@ -1,6 +1,6 @@
 //! Battery information.
 
-use std::{fmt, io, num, process::Command};
+use std::{error, fmt, io, num, process::Command};
 
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
@@ -11,6 +11,8 @@ pub enum BatteryError {
     ParseInt(num::ParseIntError),
     Output(fmt::Error),
 }
+
+impl error::Error for BatteryError {}
 
 impl fmt::Display for BatteryError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -129,8 +131,8 @@ fn battery_state(output: &str) -> Result<State, BatteryError> {
 /// Return percentage `Captures` from `UPower` command via `Regex`.
 fn percentage_caps(output: &str) -> Option<Captures> {
     lazy_static! {
-        static ref RE: Regex =
-            Regex::new(r".*percentage:\s+?(\d+)%.*").unwrap();
+        static ref RE: Regex = Regex::new(r".*percentage:\s+?(\d+)%.*")
+            .expect("string literal is not valid regex");
     }
     RE.captures(output)
 }
@@ -138,7 +140,8 @@ fn percentage_caps(output: &str) -> Option<Captures> {
 /// Return status `Captures` from `UPower` command via `Regex`.
 fn status_caps(output: &str) -> Option<Captures> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r".*state:\s+?([a-z]+).*").unwrap();
+        static ref RE: Regex = Regex::new(r".*state:\s+?([a-z]+).*")
+            .expect("string literal is not valid regex");
     }
     RE.captures(output)
 }

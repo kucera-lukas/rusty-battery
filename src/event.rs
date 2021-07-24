@@ -1,4 +1,4 @@
-use std::{fmt, thread, time};
+use std::{error, fmt, thread, time};
 
 use crate::{battery, notification};
 use crate::{battery::BatteryError, notification::NotificationError};
@@ -8,6 +8,8 @@ pub enum EventError {
     Battery(BatteryError),
     Notification(NotificationError),
 }
+
+impl error::Error for EventError {}
 
 impl fmt::Display for EventError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

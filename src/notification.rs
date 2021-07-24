@@ -1,10 +1,12 @@
 use notify_rust::{Hint, Notification, NotificationHandle, Urgency};
-use std::fmt;
+use std::{error, fmt};
 
 #[derive(Debug)]
 pub enum NotificationError {
     Notify(notify_rust::error::Error),
 }
+
+impl error::Error for NotificationError {}
 
 impl fmt::Display for NotificationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
