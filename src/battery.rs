@@ -63,7 +63,7 @@ impl fmt::Display for State {
 
 #[derive(Debug)]
 pub struct Info {
-    pub percentage: i32,
+    pub percentage: u8,
     pub state: State,
 }
 
@@ -108,13 +108,13 @@ fn upower_command() -> Result<String, BatteryError> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-/// Return current battery percentage.
-fn battery_percentage(output: &str) -> Result<i32, BatteryError> {
+/// Extract current battery percentage from `UPower` output.
+fn battery_percentage(output: &str) -> Result<u8, BatteryError> {
     let caps = percentage_caps(output);
     Ok(caps_to_str(&caps)?.parse()?)
 }
 
-/// Return current battery state as the `State` enum.
+/// Extract current battery state as the `State` enum from `UPower` output.
 fn battery_state(output: &str) -> Result<State, BatteryError> {
     let caps = status_caps(output);
     let state = caps_to_str(&caps)?;
@@ -128,7 +128,7 @@ fn battery_state(output: &str) -> Result<State, BatteryError> {
     Ok(result)
 }
 
-/// Return percentage `Captures` from `UPower` command via `Regex`.
+/// Return percentage `Captures` from `UPower` output via `Regex`.
 fn percentage_caps(output: &str) -> Option<Captures> {
     lazy_static! {
         static ref RE: Regex = Regex::new(r".*percentage:\s+?(\d+)%.*")
@@ -137,7 +137,7 @@ fn percentage_caps(output: &str) -> Option<Captures> {
     RE.captures(output)
 }
 
-/// Return status `Captures` from `UPower` command via `Regex`.
+/// Return status `Captures` from `UPower` output via `Regex`.
 fn status_caps(output: &str) -> Option<Captures> {
     lazy_static! {
         static ref RE: Regex = Regex::new(r".*state:\s+?([a-z]+).*")

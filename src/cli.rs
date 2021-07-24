@@ -8,7 +8,7 @@ use structopt::StructOpt;
 pub struct Opts {
     /// Battery charge threshold
     #[structopt(short, long, default_value = "80")]
-    pub threshold: i32,
+    pub threshold: u8,
 }
 
 pub fn parse() -> Opts {

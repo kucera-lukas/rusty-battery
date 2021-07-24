@@ -25,7 +25,7 @@ impl From<notify_rust::error::Error> for NotificationError {
 }
 
 pub fn notification(
-    battery_percentage: i32,
+    battery_percentage: u8,
 ) -> Result<NotificationHandle, NotificationError> {
     let handle = Notification::new()
         .summary("Charge limit warning")

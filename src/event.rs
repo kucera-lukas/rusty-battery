@@ -39,7 +39,7 @@ impl From<NotificationError> for EventError {
 #[derive(Debug)]
 struct Manager {
     battery_info: battery::Info,
-    threshold: i32,
+    threshold: u8,
 }
 
 /// Put the current thread to sleep for the specified amount of seconds.
@@ -87,7 +87,7 @@ fn above_threshold(manager: &mut Manager) -> Result<(), EventError> {
 }
 
 /// Loop to take care of battery charge threshold events.
-pub fn event_loop(threshold: i32) -> Result<(), EventError> {
+pub fn event_loop(threshold: u8) -> Result<(), EventError> {
     let mut manager = Manager {
         battery_info: battery::Info::new()?,
         threshold,
