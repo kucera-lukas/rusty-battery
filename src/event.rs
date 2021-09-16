@@ -15,7 +15,7 @@ impl fmt::Display for EventError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Battery(ref err) => {
-                write!(f, "Battery Error: {}", err)
+                write!(f, "Battery Error: {:?}", err)
             }
             Self::Notification(ref err) => {
                 write! {f, "Event Error: {}", err}
