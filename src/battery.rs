@@ -19,15 +19,15 @@ pub enum BatteryError {
 
 #[derive(Debug, PartialEq)]
 pub enum State {
-    CHARGING,
-    DISCHARGING,
+    Charging,
+    Discharging,
 }
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            State::CHARGING => write!(f, "Charging"),
-            State::DISCHARGING => write!(f, "Discharging"),
+            State::Charging => write!(f, "Charging"),
+            State::Discharging => write!(f, "Discharging"),
         }
     }
 }
@@ -95,8 +95,8 @@ fn battery_state(device: &Battery) -> Result<State> {
     let state = device.state();
 
     let result = match state {
-        BatteryState::Charging | BatteryState::Full => State::CHARGING,
-        BatteryState::Discharging | BatteryState::Empty => State::DISCHARGING,
+        BatteryState::Charging | BatteryState::Full => State::Charging,
+        BatteryState::Discharging | BatteryState::Empty => State::Discharging,
         _ => return Err(BatteryError::UnknownState { state }),
     };
 

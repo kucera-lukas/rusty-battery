@@ -18,7 +18,7 @@ impl fmt::Display for EventError {
                 write!(f, "Battery Error: {:?}", err)
             }
             Self::Notification(ref err) => {
-                write! {f, "Event Error: {}", err}
+                write!(f, "Event Error: {}", err)
             }
         }
     }
@@ -68,13 +68,13 @@ fn below_threshold(manager: &mut Manager) -> Result<(), EventError> {
 fn above_threshold(manager: &mut Manager) -> Result<(), EventError> {
     while manager.battery_info.percentage >= manager.threshold {
         let state = &manager.battery_info.state;
-        if *state == battery::State::CHARGING {
+        if *state == battery::State::Charging {
             let handle =
                 notification::notification(manager.battery_info.percentage)?;
 
             // If user unplugs charger we can close notification.
             sleep(5);
-            if *state == battery::State::DISCHARGING {
+            if *state == battery::State::Discharging {
                 handle.close();
             }
         }
