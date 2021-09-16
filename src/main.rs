@@ -11,5 +11,5 @@ mod notification;
 fn main() {
     let opts: cli::Opts = cli::parse();
 
-    event::event_loop(opts.threshold).unwrap()
+    event::event_loop(opts.threshold).unwrap();
 }
