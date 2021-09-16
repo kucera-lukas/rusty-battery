@@ -24,6 +24,12 @@ impl From<notify_rust::error::Error> for NotificationError {
     }
 }
 
+/// Show a desktop notification.
+///
+/// Notification lets the user know that battery percentage
+/// already surpassed the specified threshold.
+///
+/// Return the handle to the new notification.
 pub fn notification(
     battery_percentage: u8,
 ) -> Result<NotificationHandle, NotificationError> {
