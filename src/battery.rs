@@ -11,9 +11,9 @@ pub type Result<T> = result::Result<T, BatteryError>;
 pub enum BatteryError {
     #[error("could not find any battery device")]
     DeviceError,
-    #[error("battery information failure, source: {.source:?}, description: {.description:?}.")]
+    #[error("battery information failure")]
     SystemError(#[from] battery::Error),
-    #[error("unknown battery state: {state:?}.")]
+    #[error("unknown battery state: {state}")]
     UnknownState { state: BatteryState },
 }
 
@@ -34,7 +34,7 @@ impl fmt::Display for State {
 
 #[derive(Debug)]
 pub struct Info {
-    pub percentage: f32,
+    pub percentage: u8,
     pub state: State,
 
     device: Battery,
@@ -71,22 +71,23 @@ impl fmt::Display for Info {
     }
 }
 
-/// Return battery device object providing information about the battery.
+/// Return `Battery` device object providing information about the battery.
 fn battery_device() -> Result<Battery> {
     let manager = Manager::new()?;
     let device = manager
         .batteries()?
         .next()
-        .ok_or_else(|| BatteryError::DeviceError)?;
+        .ok_or(BatteryError::DeviceError)?;
     Ok(device?)
 }
 
 /// Return current battery percentage.
-fn battery_percentage(device: &Battery) -> f32 {
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+fn battery_percentage(device: &Battery) -> u8 {
     device
         .state_of_charge()
         .get::<units::ratio::percent>()
-        .trunc()
+        .trunc() as u8
 }
 
 /// Return current battery state as the `State` enum.
