@@ -1,6 +1,14 @@
 //! CLI tool to help you care about your device's battery health.
 
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![warn(
+    clippy::correctness,
+    clippy::suspicious,
+    clippy::style,
+    clippy::complexity,
+    clippy::perf,
+    clippy::pedantic,
+    clippy::nursery
+)]
 #![allow(clippy::module_name_repetitions, clippy::items_after_statements)]
 
 mod battery;
