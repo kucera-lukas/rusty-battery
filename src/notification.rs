@@ -1,28 +1,8 @@
+use std::result;
+
 use notify_rust::{Hint, Notification, NotificationHandle, Urgency};
-use std::{error, fmt};
 
-#[derive(Debug)]
-pub enum NotificationError {
-    Notify(notify_rust::error::Error),
-}
-
-impl error::Error for NotificationError {}
-
-impl fmt::Display for NotificationError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Notify(ref err) => {
-                write!(f, "NotifyRust Error: {}", err)
-            }
-        }
-    }
-}
-
-impl From<notify_rust::error::Error> for NotificationError {
-    fn from(err: notify_rust::error::Error) -> Self {
-        Self::Notify(err)
-    }
-}
+pub type Result<T> = result::Result<T, notify_rust::error::Error>;
 
 /// Show a desktop notification.
 ///
@@ -30,9 +10,7 @@ impl From<notify_rust::error::Error> for NotificationError {
 /// already surpassed the specified threshold.
 ///
 /// Return the handle to the new notification.
-pub fn notification(
-    battery_percentage: u8,
-) -> Result<NotificationHandle, NotificationError> {
+pub fn notification(battery_percentage: u8) -> Result<NotificationHandle> {
     let handle = Notification::new()
         .summary("Charge limit warning")
         .body(&format!(
