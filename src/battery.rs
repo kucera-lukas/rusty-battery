@@ -2,20 +2,10 @@
 
 use std::{fmt, result};
 
+use crate::error::BatteryError;
 use battery::{units, Battery, Manager, State as BatteryState};
-use thiserror::Error;
 
 pub type Result<T> = result::Result<T, BatteryError>;
-
-#[derive(Error, Debug)]
-pub enum BatteryError {
-    #[error("could not find any battery device")]
-    DeviceError,
-    #[error("battery information failure")]
-    SystemError(#[from] battery::Error),
-    #[error("unknown battery state: {state}")]
-    UnknownState { state: BatteryState },
-}
 
 #[derive(Debug, PartialEq)]
 pub enum State {
