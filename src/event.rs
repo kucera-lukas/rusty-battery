@@ -1,40 +1,9 @@
-use std::{error, fmt, thread, time};
+use std::{result, thread, time};
 
+use crate::error::EventError;
 use crate::{battery, notification};
-use crate::{battery::BatteryError, notification::NotificationError};
 
-#[derive(Debug)]
-pub enum EventError {
-    Battery(BatteryError),
-    Notification(NotificationError),
-}
-
-impl error::Error for EventError {}
-
-impl fmt::Display for EventError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Battery(ref err) => {
-                write!(f, "Battery Error: {:?}", err)
-            }
-            Self::Notification(ref err) => {
-                write!(f, "Event Error: {}", err)
-            }
-        }
-    }
-}
-
-impl From<BatteryError> for EventError {
-    fn from(err: BatteryError) -> Self {
-        Self::Battery(err)
-    }
-}
-
-impl From<NotificationError> for EventError {
-    fn from(err: NotificationError) -> Self {
-        Self::Notification(err)
-    }
-}
+pub type Result<T> = result::Result<T, EventError>;
 
 #[derive(Debug)]
 struct Manager {
@@ -50,7 +19,7 @@ fn sleep(secs: u64) {
 /// Loop for as long as battery percentage is lower than threshold.
 ///
 /// `Manager` is refreshed every 30 seconds to check updated values.
-fn below_threshold(manager: &mut Manager) -> Result<(), EventError> {
+fn below_threshold(manager: &mut Manager) -> Result<()> {
     while manager.battery_info.percentage < manager.threshold {
         manager.battery_info.refresh()?;
         sleep(30);
@@ -65,7 +34,7 @@ fn below_threshold(manager: &mut Manager) -> Result<(), EventError> {
 ///
 /// Desktop notification is shown in every iteration while battery
 /// state is `CHARGING`.
-fn above_threshold(manager: &mut Manager) -> Result<(), EventError> {
+fn above_threshold(manager: &mut Manager) -> Result<()> {
     while manager.battery_info.percentage >= manager.threshold {
         let state = &manager.battery_info.state;
         if *state == battery::State::Charging {
@@ -87,7 +56,7 @@ fn above_threshold(manager: &mut Manager) -> Result<(), EventError> {
 }
 
 /// Loop to take care of battery charge threshold events.
-pub fn event_loop(threshold: u8) -> Result<(), EventError> {
+pub fn event_loop(threshold: u8) -> Result<()> {
     let mut manager = Manager {
         battery_info: battery::Info::new()?,
         threshold,
