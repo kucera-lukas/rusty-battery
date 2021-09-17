@@ -5,6 +5,7 @@
 
 mod battery;
 mod cli;
+mod error;
 mod event;
 mod notification;
 
