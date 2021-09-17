@@ -14,10 +14,8 @@ pub enum BatteryError {
 
 #[derive(Error, Debug)]
 pub enum EventError {
-    #[error("something went wrong while getting battery information: {.0}")]
+    #[error("something went wrong while getting battery information: {}", .0)]
     Battery(#[from] BatteryError),
-    #[error(
-        "something went wrong while showing a desktop notification: {.0}"
-    )]
+    #[error("something went wrong while showing a desktop notification: {}", .0)]
     Notification(#[from] notify_rust::error::Error),
 }
