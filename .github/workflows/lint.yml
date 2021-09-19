@@ -36,13 +36,13 @@ jobs:
           command: check --verbose --all-features --workspace
 
       - name: Run cargo fmt
-      - uses: actions-rs/cargo@v1
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check --verbose
 
       - name: Run cargo clippy
-      - uses: actions-rs/cargo@v1
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --verbose --all-features --all-targets -- -D warnings
