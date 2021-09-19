@@ -8,7 +8,14 @@ on:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Git Checkout
         uses: actions/checkout@v1
