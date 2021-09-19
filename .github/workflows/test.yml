@@ -43,7 +43,9 @@ jobs:
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./cobertura.xml
+          fail_ci_if_error: true
+          vebose: true
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
