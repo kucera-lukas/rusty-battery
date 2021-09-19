@@ -1,5 +1,6 @@
 # rusty-battery
 
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Test Suite](https://github.com/kucera-lukas/rusty-battery/actions/workflows/test.yml/badge.svg)](https://github.com/kucera-lukas/rusty-battery/actions/workflows/test.yml)
+[![Code Style](https://github.com/kucera-lukas/rusty-battery/actions/workflows/lint.yml/badge.svg)](https://github.com/kucera-lukas/rusty-battery/actions/workflows/lint.yml)
 
 CLI tool to help you care about your devices's battery health.
