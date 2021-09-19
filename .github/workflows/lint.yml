@@ -1,6 +1,6 @@
-name: Lint
+name: Code Style
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   lint:
@@ -18,17 +18,17 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v2
 
-      - name: Install minimal stable with clippy and rustfmt
+      - name: Install minimal ${{ matrix.toolchain }} with clippy and rustfmt
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: ${{ matrix.toolchain }}
           components: rustfmt, clippy
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: check --verbose --all-features --workspace
 
       - name: Run cargo fmt
       - uses: actions-rs/cargo@v1
