@@ -22,5 +22,11 @@ repos:
       - id: cargo-check
         args: [ '--verbose', '--all-features', '--workspace' ]
       - id: clippy
-        args: [ '--verbose', '--all-features', '--all-targets', '--fix',
-                '--allow-dirty', '--allow-staged' ]
+        args: [
+                '--verbose',
+                '--all-features',
+                '--all-targets',
+                '--fix',
+                '--allow-dirty',
+                '--allow-staged',
+              ]
