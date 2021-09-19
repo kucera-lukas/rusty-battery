@@ -1,0 +1,43 @@
+name: Lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    name: ${{ matrix.os }} / ${{ matrix.toolchain }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        toolchain: [ stable ]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Install minimal stable with clippy and rustfmt
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+      - name: Run cargo fmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check --verbose
+
+      - name: Run cargo clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --verbose --all-features --all-targets -- -D warnings
