@@ -24,5 +24,5 @@ pub fn init(verbose: u8) {
         .filter(None, level)
         .init();
 
-    log::debug!("env_logger initialized with RUST_LOG={:?}", level);
+    log::debug!("env_logger initialized with RUST_LOG={}", level);
 }
