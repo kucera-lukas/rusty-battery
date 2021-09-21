@@ -15,7 +15,7 @@ pub fn notification(battery_percentage: u8) -> Result<NotificationHandle> {
         .summary("Charge limit warning")
         .body(&format!(
             "Battery percentage already at {}%, you might want to unplug your charger",
-            battery_percentage.to_string()
+            battery_percentage,
         ))
         .icon("administration")
         .appname("rusty-battery")
@@ -24,6 +24,11 @@ pub fn notification(battery_percentage: u8) -> Result<NotificationHandle> {
         .timeout(0)
         .finalize()
         .show()?;
+
+    log::info!(
+        "created desktop notification with percentage = {}%",
+        battery_percentage,
+    );
 
     Ok(handle)
 }
