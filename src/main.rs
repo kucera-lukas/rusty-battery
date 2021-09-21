@@ -15,10 +15,13 @@ mod battery;
 mod cli;
 mod error;
 mod event;
+mod logger;
 mod notification;
 
 fn main() {
     let opts: cli::Opts = cli::parse();
+
+    logger::init(opts.verbose);
 
     event::event_loop(opts.threshold).unwrap();
 }
