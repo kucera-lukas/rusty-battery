@@ -13,7 +13,16 @@ struct Manager {
 
 /// Put the current thread to sleep for the specified amount of seconds.
 fn sleep(secs: u64) {
+    log::debug!("sleeping for {} seconds", secs);
     thread::sleep(time::Duration::from_secs(secs));
+}
+
+/// Refresh given `Manager` instance and sleep for the given amount of seconds.
+fn sleep_and_refresh(manager: &mut Manager, secs: u64) -> Result<()> {
+    sleep(secs);
+    manager.battery_info.refresh()?;
+
+    Ok(())
 }
 
 /// Loop for as long as battery percentage is lower than threshold.
@@ -21,8 +30,12 @@ fn sleep(secs: u64) {
 /// `Manager` is refreshed every 30 seconds to check updated values.
 fn below_threshold(manager: &mut Manager) -> Result<()> {
     while manager.battery_info.percentage < manager.threshold {
-        manager.battery_info.refresh()?;
-        sleep(30);
+        log::info!(
+            "battery is below the the threshold {}%",
+            manager.threshold
+        );
+
+        sleep_and_refresh(manager, 30)?;
     }
 
     Ok(())
@@ -36,6 +49,8 @@ fn below_threshold(manager: &mut Manager) -> Result<()> {
 /// state is `CHARGING`.
 fn above_threshold(manager: &mut Manager) -> Result<()> {
     while manager.battery_info.percentage >= manager.threshold {
+        log::info!("battery is above threshold {}%", manager.threshold);
+
         let state = &manager.battery_info.state;
         if *state == battery::State::Charging {
             let handle =
@@ -48,8 +63,7 @@ fn above_threshold(manager: &mut Manager) -> Result<()> {
             }
         }
 
-        manager.battery_info.refresh()?;
-        sleep(30);
+        sleep_and_refresh(manager, 30)?;
     }
 
     Ok(())

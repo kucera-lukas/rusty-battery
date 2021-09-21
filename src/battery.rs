@@ -43,11 +43,13 @@ impl Info {
     }
 
     /// Update attributes to current battery values.
-    pub fn refresh(&mut self) -> Result<()> {
+    pub fn refresh(&mut self) -> Result<&mut Self> {
         self.percentage = battery_percentage(&self.device);
         self.state = battery_state(&self.device)?;
 
-        Ok(())
+        log::info!("refreshed: {}", self);
+
+        Ok(self)
     }
 }
 
@@ -55,7 +57,7 @@ impl fmt::Display for Info {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Battery percentage: {}%, State: {}",
+            "battery percentage: {}%, state: {}",
             self.percentage, self.state,
         )
     }
@@ -74,10 +76,14 @@ fn battery_device() -> Result<Battery> {
 /// Return current battery percentage.
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 fn battery_percentage(device: &Battery) -> u8 {
-    device
+    let percentage = device
         .state_of_charge()
         .get::<units::ratio::percent>()
-        .trunc() as u8
+        .trunc() as u8;
+
+    log::debug!("current battery percentage = {}%", percentage);
+
+    percentage
 }
 
 /// Return current battery state as the `State` enum.
@@ -89,6 +95,8 @@ fn battery_state(device: &Battery) -> Result<State> {
         BatteryState::Discharging | BatteryState::Empty => State::Discharging,
         _ => return Err(BatteryError::UnknownState { state }),
     };
+
+    log::debug!("current battery state = {}", result);
 
     Ok(result)
 }
