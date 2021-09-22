@@ -1,15 +1,13 @@
-use std::{result, thread, time};
+use std::result;
+use std::thread;
+use std::time;
 
-use crate::error::EventError;
-use crate::{battery, notification};
+use crate::application::App;
+use crate::battery::{BatteryState, ProvideBatteryData};
+use crate::error::AppError;
+use crate::notification::desktop::ProvideDesktopNotification;
 
-pub type Result<T> = result::Result<T, EventError>;
-
-#[derive(Debug)]
-struct Manager {
-    battery_info: battery::Info,
-    threshold: u8,
-}
+pub type Result<T> = result::Result<T, AppError>;
 
 /// Put the current thread to sleep for the specified amount of seconds.
 fn sleep(secs: u64) {
@@ -18,9 +16,13 @@ fn sleep(secs: u64) {
 }
 
 /// Refresh given `Manager` instance and sleep for the given amount of seconds.
-fn sleep_and_refresh(manager: &mut Manager, secs: u64) -> Result<()> {
+fn sleep_and_refresh<B, D>(app: &mut App<B, D>, secs: u64) -> Result<()>
+where
+    B: ProvideBatteryData,
+    D: ProvideDesktopNotification,
+{
     sleep(secs);
-    manager.battery_info.refresh()?;
+    app.battery.refresh()?;
 
     Ok(())
 }
@@ -28,14 +30,18 @@ fn sleep_and_refresh(manager: &mut Manager, secs: u64) -> Result<()> {
 /// Loop for as long as battery percentage is lower than threshold.
 ///
 /// `Manager` is refreshed every 30 seconds to check updated values.
-fn below_threshold(manager: &mut Manager) -> Result<()> {
-    while manager.battery_info.percentage < manager.threshold {
+fn below_threshold<B, D>(app: &mut App<B, D>) -> Result<()>
+where
+    B: ProvideBatteryData,
+    D: ProvideDesktopNotification,
+{
+    while app.battery.percentage < app.settings.threshold {
         log::info!(
-            "battery is below the the threshold {}%",
-            manager.threshold
+            "battery is below the threshold {}%",
+            app.settings.threshold
         );
 
-        sleep_and_refresh(manager, 30)?;
+        sleep_and_refresh(app, 30)?;
     }
 
     Ok(())
@@ -47,37 +53,39 @@ fn below_threshold(manager: &mut Manager) -> Result<()> {
 ///
 /// Desktop notification is shown in every iteration while battery
 /// state is `CHARGING`.
-fn above_threshold(manager: &mut Manager) -> Result<()> {
-    while manager.battery_info.percentage >= manager.threshold {
-        log::info!("battery is above threshold {}%", manager.threshold);
+fn above_threshold<B, D>(app: &mut App<B, D>) -> Result<()>
+where
+    B: ProvideBatteryData,
+    D: ProvideDesktopNotification,
+{
+    while app.battery.percentage >= app.settings.threshold {
+        log::info!(
+            "battery is above the threshold {}%",
+            &app.settings.threshold
+        );
 
-        let state = &manager.battery_info.state;
-        if *state == battery::State::Charging {
-            let handle =
-                notification::notification(manager.battery_info.percentage)?;
+        let state = &app.battery.state;
 
-            // If user unplugs charger we can close notification.
-            sleep(5);
-            if *state == battery::State::Discharging {
-                handle.close();
-            }
+        if *state == BatteryState::Charging {
+            app.notifier
+                .desktop
+                .notify_above_threshold(app.settings.threshold);
         }
 
-        sleep_and_refresh(manager, 30)?;
+        sleep_and_refresh(app, 30)?;
     }
 
     Ok(())
 }
 
 /// Loop to take care of battery charge threshold events.
-pub fn event_loop(threshold: u8) -> Result<()> {
-    let mut manager = Manager {
-        battery_info: battery::Info::new()?,
-        threshold,
-    };
-
+pub fn event_loop<B, D>(app: &mut App<B, D>) -> Result<()>
+where
+    B: ProvideBatteryData,
+    D: ProvideDesktopNotification,
+{
     loop {
-        below_threshold(&mut manager)?;
-        above_threshold(&mut manager)?;
+        below_threshold(app)?;
+        above_threshold(app)?;
     }
 }
