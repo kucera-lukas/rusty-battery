@@ -18,9 +18,8 @@ repos:
     rev: v1.0
     hooks:
       - id: fmt
-        args: [ '--all', '--', '--verbose' ]
       - id: cargo-check
-        args: [ '--verbose', '--all-features', '--workspace' ]
+        args: [ '--verbose', '--all-features', ]
       - id: clippy
         args: [
                 '--verbose',

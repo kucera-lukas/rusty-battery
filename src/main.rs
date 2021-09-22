@@ -11,6 +11,7 @@
 )]
 #![allow(clippy::module_name_repetitions, clippy::items_after_statements)]
 
+mod application;
 mod battery;
 mod cli;
 mod error;
@@ -19,9 +20,23 @@ mod logger;
 mod notification;
 
 fn main() {
-    let opts: cli::Opts = cli::parse();
+    let opts = cli::parse();
 
     logger::init(opts.verbose);
 
-    event::event_loop(opts.threshold).unwrap();
+    let battery_provider = battery::BatteryDataProvider::new()
+        .unwrap_or_else(|e| panic!("{}", e));
+
+    let desktop_notifier =
+        notification::desktop::DesktopNotificationProvider::new();
+
+    let mut app = application::App::new(
+        opts.verbose,
+        opts.threshold,
+        battery_provider,
+        desktop_notifier,
+    )
+    .unwrap_or_else(|e| panic!("{}", e));
+
+    event::event_loop(&mut app).unwrap();
 }
