@@ -3,49 +3,109 @@
 use std::{fmt, result};
 
 use crate::error::BatteryError;
-use battery::{units, Battery, Manager, State as BatteryState};
 
 pub type Result<T> = result::Result<T, BatteryError>;
 
 #[derive(Debug, PartialEq)]
-pub enum State {
+pub enum BatteryState {
     Charging,
     Discharging,
 }
 
-impl fmt::Display for State {
+impl fmt::Display for BatteryState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            State::Charging => write!(f, "Charging"),
-            State::Discharging => write!(f, "Discharging"),
+            Self::Charging => write!(f, "Charging"),
+            Self::Discharging => write!(f, "Discharging"),
         }
     }
 }
 
-#[derive(Debug)]
-pub struct Info {
-    pub percentage: u8,
-    pub state: State,
-
-    device: Battery,
+pub trait ProvideBatteryData {
+    /// Return current battery percentage.
+    fn percentage(&self) -> u8;
+    /// Return current battery state as the `State` enum.
+    fn state(&self) -> Result<BatteryState>;
 }
 
-impl Info {
-    /// Construct a new `Info` instance.
-    pub fn new() -> Result<Self> {
-        let device = battery_device()?;
+#[derive(Debug)]
+pub struct BatteryDataProvider {
+    device: battery::Battery,
+}
 
-        Ok(Self {
-            percentage: battery_percentage(&device),
-            state: battery_state(&device)?,
-            device,
-        })
+impl ProvideBatteryData for BatteryDataProvider {
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    fn percentage(&self) -> u8 {
+        let percentage = self
+            .device
+            .state_of_charge()
+            .get::<battery::units::ratio::percent>()
+            .trunc() as u8;
+
+        log::debug!("current battery percentage = {}%", percentage);
+
+        percentage
+    }
+
+    fn state(&self) -> Result<BatteryState> {
+        let state = self.device.state();
+
+        let result = match state {
+            battery::State::Charging | battery::State::Full => {
+                Ok(BatteryState::Charging)
+            }
+            battery::State::Discharging | battery::State::Empty => {
+                Ok(BatteryState::Discharging)
+            }
+            _ => Err(BatteryError::UnknownState { state }),
+        };
+
+        if let Ok(state) = &result {
+            log::debug!("current battery state = {}", state);
+        };
+
+        result
+    }
+}
+
+impl BatteryDataProvider {
+    /// Create a new instance of `BatteryDataProvider` via the `battery::Battery` device object.
+    pub fn new() -> Result<Self> {
+        let manager = battery::Manager::new()?;
+        let device = manager
+            .batteries()?
+            .next()
+            .ok_or(BatteryError::DeviceError)??;
+
+        Ok(Self { device })
+    }
+}
+
+pub struct BatteryInfo<B: ProvideBatteryData> {
+    pub percentage: u8,
+    pub state: BatteryState,
+
+    provider: B,
+}
+
+impl<B> BatteryInfo<B>
+where
+    B: ProvideBatteryData,
+{
+    /// Construct a new `Info` instance.
+    pub fn new(battery_provider: B) -> Result<Self> {
+        let info = Self {
+            percentage: battery_provider.percentage(),
+            state: battery_provider.state()?,
+            provider: battery_provider,
+        };
+        Ok(info)
     }
 
     /// Update attributes to current battery values.
     pub fn refresh(&mut self) -> Result<&mut Self> {
-        self.percentage = battery_percentage(&self.device);
-        self.state = battery_state(&self.device)?;
+        self.percentage = self.provider.percentage();
+        self.state = self.provider.state()?;
 
         log::info!("refreshed: {}", self);
 
@@ -53,7 +113,10 @@ impl Info {
     }
 }
 
-impl fmt::Display for Info {
+impl<B> fmt::Display for BatteryInfo<B>
+where
+    B: ProvideBatteryData,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -61,42 +124,4 @@ impl fmt::Display for Info {
             self.percentage, self.state,
         )
     }
-}
-
-/// Return `Battery` device object providing information about the battery.
-fn battery_device() -> Result<Battery> {
-    let manager = Manager::new()?;
-    let device = manager
-        .batteries()?
-        .next()
-        .ok_or(BatteryError::DeviceError)?;
-    Ok(device?)
-}
-
-/// Return current battery percentage.
-#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-fn battery_percentage(device: &Battery) -> u8 {
-    let percentage = device
-        .state_of_charge()
-        .get::<units::ratio::percent>()
-        .trunc() as u8;
-
-    log::debug!("current battery percentage = {}%", percentage);
-
-    percentage
-}
-
-/// Return current battery state as the `State` enum.
-fn battery_state(device: &Battery) -> Result<State> {
-    let state = device.state();
-
-    let result = match state {
-        BatteryState::Charging | BatteryState::Full => State::Charging,
-        BatteryState::Discharging | BatteryState::Empty => State::Discharging,
-        _ => return Err(BatteryError::UnknownState { state }),
-    };
-
-    log::debug!("current battery state = {}", result);
-
-    Ok(result)
 }
