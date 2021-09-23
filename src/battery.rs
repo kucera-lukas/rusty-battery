@@ -1,6 +1,6 @@
 //! Battery information.
 
-use std::{fmt, result};
+use std::result;
 
 use crate::error::BatteryError;
 
@@ -12,19 +12,10 @@ pub enum BatteryState {
     Discharging,
 }
 
-impl fmt::Display for BatteryState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Charging => write!(f, "Charging"),
-            Self::Discharging => write!(f, "Discharging"),
-        }
-    }
-}
-
 pub trait ProvideBatteryData {
     /// Return current battery percentage.
     fn percentage(&self) -> u8;
-    /// Return current battery state as the `State` enum.
+    /// Return current battery state as the `BatteryState` enum.
     fn state(&self) -> Result<BatteryState>;
 }
 
@@ -81,6 +72,7 @@ impl BatteryDataProvider {
     }
 }
 
+#[derive(Debug)]
 pub struct BatteryInfo<B: ProvideBatteryData> {
     pub percentage: u8,
     pub state: BatteryState,
@@ -113,15 +105,30 @@ where
     }
 }
 
-impl<B> fmt::Display for BatteryInfo<B>
-where
-    B: ProvideBatteryData,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "battery percentage: {}%, state: {}",
-            self.percentage, self.state,
-        )
+mod std_fmt_impls {
+    use std::fmt;
+
+    use super::{BatteryInfo, BatteryState, ProvideBatteryData};
+
+    impl fmt::Display for BatteryState {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            match self {
+                Self::Charging => write!(f, "Charging"),
+                Self::Discharging => write!(f, "Discharging"),
+            }
+        }
+    }
+
+    impl<B> fmt::Display for BatteryInfo<B>
+    where
+        B: ProvideBatteryData,
+    {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(
+                f,
+                "battery percentage: {}%, state: {}",
+                self.percentage, self.state,
+            )
+        }
     }
 }
