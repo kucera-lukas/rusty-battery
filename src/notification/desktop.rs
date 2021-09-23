@@ -1,28 +1,29 @@
+use std::result;
+
 use notify_rust::{Hint, Notification, NotificationHandle, Urgency};
 
+pub type Result<T> = result::Result<T, notify_rust::error::Error>;
+
 pub trait ProvideDesktopNotification {
-    fn notify_above_threshold(
+    /// Show a new desktop `Notification`.
+    fn notification(&self, body: &str) -> Result<NotificationHandle>;
+    /// Notify the user that battery percentage reached the given threshold.
+    ///
+    /// If showing notification succeeds, return its `NotificationHandle`.
+    fn above_threshold(
         &self,
         battery_percentage: u8,
     ) -> Option<NotificationHandle>;
 }
 
+#[derive(Debug)]
 pub struct DesktopNotificationProvider;
 
 impl ProvideDesktopNotification for DesktopNotificationProvider {
-    /// Notify the user that battery percentage reached the given threshold.
-    ///
-    /// Return a handle to the newly created desktop notification.
-    fn notify_above_threshold(
-        &self,
-        battery_percentage: u8,
-    ) -> Option<NotificationHandle> {
+    fn notification(&self, body: &str) -> Result<NotificationHandle> {
         let notification = Notification::new()
             .summary("Charge limit warning")
-            .body(&format!(
-                "Battery percentage already at {}%, you might want to unplug your charger",
-                battery_percentage,
-            ))
+            .body(body)
             .icon("administration")
             .appname("rusty-battery")
             .hint(Hint::Category("device".to_owned()))
@@ -30,7 +31,19 @@ impl ProvideDesktopNotification for DesktopNotificationProvider {
             .timeout(0)
             .finalize();
 
-        let handle: Option<NotificationHandle> = match notification.show() {
+        notification.show()
+    }
+
+    fn above_threshold(
+        &self,
+        battery_percentage: u8,
+    ) -> Option<NotificationHandle> {
+        let body = format!(
+            "Battery percentage already at {}%, you might want to unplug your charger",
+            battery_percentage,
+        );
+
+        match self.notification(&body) {
             Ok(handle) => {
                 log::info!(
                     "showing desktop notification with battery percentage = {}%",
@@ -42,9 +55,7 @@ impl ProvideDesktopNotification for DesktopNotificationProvider {
                 log::warn!("showing desktop notification failed: {}", e);
                 None
             }
-        };
-
-        handle
+        }
     }
 }
 
