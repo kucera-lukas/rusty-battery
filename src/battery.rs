@@ -159,7 +159,7 @@ mod tests {
 
         let display = format!("{}", state);
 
-        assert_eq!(display, "Charging")
+        assert_eq!(display, "Charging");
     }
 
     #[test]
@@ -168,6 +168,6 @@ mod tests {
 
         let display = format!("{}", state);
 
-        assert_eq!(display, "Discharging")
+        assert_eq!(display, "Discharging");
     }
 }

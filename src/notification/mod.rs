@@ -45,6 +45,6 @@ mod tests {
 
         let display = format!("{}", notifier);
 
-        assert_eq!(display, "desktop: threshold: 0, handle: None")
+        assert_eq!(display, "desktop: threshold: 0, handle: None");
     }
 }
