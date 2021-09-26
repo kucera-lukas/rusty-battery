@@ -10,8 +10,6 @@ pub enum Error {
 
 #[derive(Error, Debug)]
 pub enum BatteryError {
-    #[error("could not find any battery device")]
-    DeviceError,
     #[error("battery information failure")]
     SystemError(#[from] battery::Error),
 }
