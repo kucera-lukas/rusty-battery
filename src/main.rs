@@ -9,7 +9,7 @@
     clippy::pedantic,
     clippy::nursery
 )]
-#![allow(clippy::module_name_repetitions, clippy::items_after_statements)]
+#![allow(clippy::module_name_repetitions)]
 
 mod application;
 mod battery;
@@ -24,19 +24,7 @@ fn main() {
 
     logger::init(opts.verbose);
 
-    let battery_provider = battery::BatteryDataProvider::new()
-        .unwrap_or_else(|e| panic!("{}", e));
+    let mut app = application::App::from(opts);
 
-    let desktop_notifier =
-        notification::desktop::DesktopNotificationProvider::new();
-
-    let mut app = application::App::new(
-        opts.verbose,
-        opts.threshold,
-        battery_provider,
-        desktop_notifier,
-    )
-    .unwrap_or_else(|e| panic!("{}", e));
-
-    event::event_loop(&mut app).unwrap();
+    event::event_loop(&mut app);
 }
