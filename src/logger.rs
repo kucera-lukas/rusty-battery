@@ -5,17 +5,7 @@ use std::io::Write;
 
 /// Initialize `env_logger`.
 pub fn init(verbose: u8) {
-    let mut builder = create_builder(verbose);
-    builder.init();
-}
-
-/// Return `log::LevelFilter`.
-const fn create_level_filter(verbose: u8) -> LevelFilter {
-    match verbose {
-        0 => LevelFilter::Error,
-        1 => LevelFilter::Info,
-        2..=u8::MAX => LevelFilter::Debug,
-    }
+    create_builder(verbose).init();
 }
 
 /// Return `env_logger::Builder`
@@ -41,9 +31,22 @@ pub fn create_builder(verbose: u8) -> Builder {
     builder
 }
 
+/// Return `log::LevelFilter`.
+const fn create_level_filter(verbose: u8) -> LevelFilter {
+    match verbose {
+        0 => LevelFilter::Error,
+        1 => LevelFilter::Info,
+        2..=u8::MAX => LevelFilter::Debug,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn init_log() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
 
     #[test]
     #[should_panic(
@@ -52,6 +55,12 @@ mod tests {
     fn test_init_logger_initialized() {
         init(0);
         init(0);
+    }
+
+    #[test]
+    fn test_log() {
+        init_log();
+        log::error!("test-error");
     }
 
     #[test]
