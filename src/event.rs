@@ -74,7 +74,6 @@ mod tests {
     fn test_sleep() {
         let now = time::Instant::now();
         let secs = 1;
-        let duration = time::Duration::from_secs(secs);
 
         sleep(secs);
 

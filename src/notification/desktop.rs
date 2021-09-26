@@ -83,7 +83,7 @@ mod tests {
     use std::collections::HashSet;
 
     fn assert_notification(
-        notification: Notification,
+        notification: &Notification,
         summary: &str,
         body: &str,
     ) {
@@ -110,10 +110,10 @@ mod tests {
         let notifier = DesktopNotifier::new(0);
         let notification = notifier.notification();
 
-        assert_notification(notification, "Charge limit warning", &format!(
+        assert_notification(&notification, "Charge limit warning", &format!(
             "Battery percentage reached the {}% threshold, please unplug your charger",
             notifier.threshold,
-        ))
+        ));
     }
 
     #[test]
@@ -123,7 +123,7 @@ mod tests {
 
         let notification = create_notification(summary, body);
 
-        assert_notification(notification, summary, body)
+        assert_notification(&notification, summary, body);
     }
 
     #[test]
