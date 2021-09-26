@@ -23,30 +23,19 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v2.3.4
 
-      - name: Install minimal ${{ matrix.toolchain }} with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+      - name: Install ${{ matrix.toolchain }} with clippy and rustfmt
+        uses: dtolnay/rust-toolchain@${{ matrix.toolchain }}
         with:
-          profile: minimal
-          toolchain: ${{ matrix.toolchain }}
           components: rustfmt, clippy
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v1.3.0
 
       - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --verbose --all-features --workspace
+        run: cargo chek --verbose --all-features --workspace
 
       - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check --verbose
+        run: cargo fmt --all -- --check --verbose
 
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --verbose --all-features --all-targets -- -D warnings
+        run: cargo clippy --verbose --all-features --all-targets -- -D warnings

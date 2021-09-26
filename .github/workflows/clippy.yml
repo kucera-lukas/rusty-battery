@@ -17,13 +17,8 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v2.3.4
 
-      - name: Install minimal stable with clippy
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: clippy
-          override: true
+      - name: Install stable with clippy
+        uses: dtolnay/rust-toolchain@clippy
 
       - name: Check
         uses: actions-rs/clippy-check@v1
