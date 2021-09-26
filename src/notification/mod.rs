@@ -29,7 +29,6 @@ mod std_fmt_impls {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fmt::Display;
 
     #[test]
     fn test_notifier_new() {
