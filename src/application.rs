@@ -1,44 +1,75 @@
-use std::result;
-
-use crate::battery::{BatteryInfo, ProvideBatteryData};
-use crate::error::AppError;
-use crate::notification::desktop::ProvideDesktopNotification;
+use crate::battery::BatteryInfo;
+use crate::cli::Opts;
 use crate::notification::Notifier;
 
-pub type Result<T> = result::Result<T, AppError>;
-
-pub struct App<B, D>
-where
-    B: ProvideBatteryData,
-    D: ProvideDesktopNotification,
-{
-    pub settings: UserSettings,
-    pub battery: BatteryInfo<B>,
-    pub notifier: Notifier<D>,
-}
-
-impl<B, D> App<B, D>
-where
-    B: ProvideBatteryData,
-    D: ProvideDesktopNotification,
-{
-    pub fn new(
-        verbose: u8,
-        threshold: u8,
-        battery_provider: B,
-        desktop_notifier: D,
-    ) -> Result<Self> {
-        let app = Self {
-            settings: UserSettings { verbose, threshold },
-            battery: BatteryInfo::new(battery_provider)?,
-            notifier: Notifier::new(desktop_notifier),
-        };
-
-        Ok(app)
-    }
-}
-
+#[derive(Debug)]
 pub struct UserSettings {
     pub verbose: u8,
     pub threshold: u8,
+}
+
+#[derive(Debug)]
+pub struct App {
+    pub settings: UserSettings,
+    pub battery_info: BatteryInfo,
+    pub notifier: Notifier,
+}
+
+impl App {
+    pub fn new(verbose: u8, threshold: u8, model: Option<&str>) -> Self {
+        Self {
+            settings: UserSettings { verbose, threshold },
+            battery_info: BatteryInfo::new(model),
+            notifier: Notifier::new(threshold),
+        }
+    }
+}
+
+impl From<Opts> for App {
+    fn from(opts: Opts) -> Self {
+        Self::new(opts.verbose, opts.threshold, opts.model.as_deref())
+    }
+}
+
+mod std_fmt_impls {
+    use std::fmt;
+
+    use super::{App, UserSettings};
+
+    impl fmt::Display for UserSettings {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "verbose: {}, threshold: {}",
+                self.threshold, self.threshold,
+            )
+        }
+    }
+
+    impl fmt::Display for App {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "settings: {}, battery_info: {}, notifier: {}",
+                self.settings, self.battery_info, self.notifier,
+            )
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_user_settings_display() {
+        let settings = UserSettings {
+            verbose: 0,
+            threshold: 0,
+        };
+
+        let display = format!("{}", settings);
+
+        assert_eq!(display, "verbose: 0, threshold: 0");
+    }
 }
