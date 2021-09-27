@@ -14,6 +14,7 @@
 mod application;
 mod battery;
 mod cli;
+mod common;
 mod error;
 mod event;
 mod logger;

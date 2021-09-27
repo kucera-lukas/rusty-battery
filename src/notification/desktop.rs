@@ -1,9 +1,10 @@
 use notify_rust::{Notification, NotificationHandle, Urgency};
 
+use crate::common;
+
 #[derive(Debug)]
 pub struct DesktopNotifier {
-    pub threshold: u8,
-
+    threshold: u8,
     handle: Option<NotificationHandle>,
 }
 
@@ -21,7 +22,7 @@ impl DesktopNotifier {
             // No need to create new `Notification` as we can just show
             // the previously created one via it's `update` method.
             handle.update();
-            log::debug!("reused previously defined desktop notification.");
+            log::debug!("reused previously defined desktop notification");
         } else {
             match self.notification().show() {
                 Ok(handle) => {
@@ -34,17 +35,17 @@ impl DesktopNotifier {
         }
 
         if self.handle.is_some() {
-            log::info!("desktop notification shown.");
+            log::debug!("desktop notification shown");
         }
 
         self.handle.as_ref()
     }
 
     fn notification(&self) -> Notification {
-        create_notification("Charge limit warning", &format!(
-            "Battery percentage reached the {}% threshold, please unplug your charger",
-            &self.threshold,
-        ))
+        create_notification(
+            "Charge limit warning",
+            &common::warning_message(self.threshold),
+        )
     }
 }
 
