@@ -18,7 +18,7 @@ impl KDENotifier {
 
     pub fn ping(&self) {
         self.devices.iter().for_each(|device| {
-            ping(&device.id, &common::warning_message(self.threshold))
+            ping(&device.id, &common::warning_message(self.threshold));
         });
         log::debug!("KDE Connect devices pinged");
     }
@@ -38,7 +38,7 @@ fn device_vec() -> Vec<Device> {
     )
     .lines()
     .map(|line| {
-        let mut data = line.split_whitespace().map(|s| s.to_owned());
+        let mut data = line.split_whitespace().map(ToOwned::to_owned);
         let id = data.next().expect("KDE Connect device id missing");
         let name = data.next().expect("KDE Connect device name missing");
         Device { id, name }
