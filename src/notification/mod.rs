@@ -35,18 +35,3 @@ mod std_fmt_impls {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_notifier_display() {
-        let threshold = 0;
-        let notifier = Notifier::new(threshold);
-
-        let display = format!("{}", notifier);
-
-        assert_eq!(display, "desktop: threshold: 0, handle: None");
-    }
-}
