@@ -1,5 +1,4 @@
 use crate::battery::BatteryInfo;
-use crate::cli::Opts;
 use crate::notification::Notifier;
 
 #[derive(Debug)]
@@ -22,12 +21,6 @@ impl App {
             battery_info: BatteryInfo::new(model),
             notifier: Notifier::new(threshold),
         }
-    }
-}
-
-impl From<Opts> for App {
-    fn from(opts: Opts) -> Self {
-        Self::new(opts.verbose, opts.threshold, opts.model.as_deref())
     }
 }
 
