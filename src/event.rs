@@ -45,7 +45,7 @@ fn above_threshold(
         log::info!("battery is above the {}% threshold", &threshold);
 
         if battery_info.state == BatteryState::Charging {
-            notifier.desktop.show();
+            notifier.notify();
         }
 
         sleep_and_refresh(30, battery_info);
