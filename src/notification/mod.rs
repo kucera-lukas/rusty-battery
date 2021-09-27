@@ -1,16 +1,26 @@
 mod desktop;
+pub mod kde_connect;
 
 #[derive(Debug)]
 pub struct Notifier {
-    pub desktop: desktop::DesktopNotifier,
+    desktop: desktop::DesktopNotifier,
+    kde_connect: kde_connect::KDENotifier,
 }
 
 impl Notifier {
     /// Create a new `Notifier` instance.
-    pub const fn new(threshold: u8) -> Self {
+    pub fn new(threshold: u8) -> Self {
         Self {
             desktop: desktop::DesktopNotifier::new(threshold),
+            kde_connect: kde_connect::KDENotifier::new(threshold),
         }
+    }
+
+    /// Send notification on every platform.
+    pub fn notify(&mut self) {
+        self.desktop.show();
+        self.kde_connect.ping();
+        log::info!("all notifications sent")
     }
 }
 
@@ -29,14 +39,6 @@ mod std_fmt_impls {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_notifier_new() {
-        let threshold = 0;
-        let notifier = Notifier::new(threshold);
-
-        assert_eq!(notifier.desktop.threshold, threshold);
-    }
 
     #[test]
     fn test_notifier_display() {
