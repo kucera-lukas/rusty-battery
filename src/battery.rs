@@ -44,6 +44,21 @@ impl BatteryInfo {
     }
 }
 
+/// Print all available batteries formatted in a nice and readable way.
+///
+/// Acts as an high level API for the CLI `Batteries` subcommand.
+pub fn print_batteries() {
+    batteries().enumerate().for_each(|(idx, battery)| {
+        println!(
+            "Battery Device {}: model = {}, percentage = {}, state = {}",
+            idx + 1,
+            battery.model().unwrap(),
+            percentage(&battery),
+            state(&battery),
+        )
+    })
+}
+
 /// Return `Iterator` over all available `battery::Battery` devices.
 fn batteries() -> impl Iterator<Item = battery::Battery> {
     battery::Manager::new()
