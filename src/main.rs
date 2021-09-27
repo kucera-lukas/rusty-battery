@@ -24,7 +24,16 @@ fn main() {
 
     logger::init(opts.verbose);
 
-    let mut app = application::App::from(opts);
+    match opts.cmd {
+        cli::Command::Notify { threshold, model } => {
+            let mut app = application::App::new(
+                opts.verbose,
+                threshold,
+                model.as_deref(),
+            );
 
-    event::event_loop(&mut app);
+            event::event_loop(&mut app);
+        }
+        cli::Command::Batteries => battery::print_batteries(),
+    }
 }
