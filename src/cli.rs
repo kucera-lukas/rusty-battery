@@ -1,8 +1,6 @@
 use structopt::StructOpt;
 
-/// Tool to help you care about your device's battery health
-/// by showing a desktop notification whenever battery percentage
-/// exceeds a given threshold.
+/// Tool to help you care about your device's battery health.
 #[derive(StructOpt, Debug)]
 #[structopt(name = "rusty-battery")]
 pub struct Opts {
@@ -10,29 +8,26 @@ pub struct Opts {
     #[structopt(short, long, parse(from_occurrences))]
     pub verbose: u8,
 
-    /// Battery charge threshold
-    #[structopt(short, long, default_value = "80")]
-    pub threshold: u8,
+    #[structopt(subcommand)]
+    pub cmd: Command,
+}
 
-    /// Battery model name
-    #[structopt(short, long)]
-    pub model: Option<String>,
+#[derive(StructOpt, Debug, PartialEq)]
+pub enum Command {
+    /// Notify whenever battery percentage exceeds the given threshold.
+    Notify {
+        /// Battery charge threshold
+        #[structopt(short, long, default_value = "80")]
+        threshold: u8,
+
+        /// Battery model name
+        #[structopt(short, long)]
+        model: Option<String>,
+    },
+    /// Show a list of all available batteries of the current device.
+    Batteries,
 }
 
 pub fn parse() -> Opts {
     Opts::from_args()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse() {
-        let opts = parse();
-
-        assert_eq!(opts.verbose, 0);
-        assert_eq!(opts.threshold, 80);
-        assert_eq!(opts.model, None);
-    }
 }
