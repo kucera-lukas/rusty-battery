@@ -20,7 +20,7 @@ impl Notifier {
     pub fn notify(&mut self) {
         self.desktop.show();
         self.kde_connect.ping();
-        log::info!("all notifications sent")
+        log::info!("all notifications sent");
     }
 }
 
