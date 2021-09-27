@@ -55,8 +55,8 @@ pub fn print_batteries() {
             battery.model().unwrap(),
             percentage(&battery),
             state(&battery),
-        )
-    })
+        );
+    });
 }
 
 /// Return `Iterator` over all available `battery::Battery` devices.
