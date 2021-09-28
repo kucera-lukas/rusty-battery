@@ -18,7 +18,10 @@ impl Notifier {
 
     /// Send notification on every platform.
     pub fn notify(&mut self) {
-        self.desktop.show();
+        match self.desktop.show() {
+            Ok(_) => {}
+            Err(e) => log::warn!("{}", e),
+        };
         self.kde_connect.ping();
         log::info!("all notifications sent");
     }
