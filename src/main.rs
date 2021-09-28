@@ -34,7 +34,7 @@ fn main() {
             ) {
                 Ok(app) => app,
                 Err(e) => {
-                    println!("{}", e);
+                    eprintln!("{}", e);
                     return;
                 }
             };
@@ -44,7 +44,7 @@ fn main() {
         cli::Command::Batteries => match battery::print_devices() {
             Ok(_) => {}
             Err(e) => {
-                println!("{}", e);
+                eprintln!("{}", e);
             }
         },
     }
