@@ -18,6 +18,6 @@ mod tests {
         assert_eq!(result, format!(
             "Battery percentage reached the {}% threshold, please unplug your charger",
             threshold,
-        ))
+        ));
     }
 }

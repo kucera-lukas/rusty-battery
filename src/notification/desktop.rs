@@ -1,6 +1,11 @@
+use std::result;
+
 use notify_rust::{Notification, NotificationHandle, Urgency};
 
 use crate::common;
+use crate::error::NotificationError;
+
+type Result<T> = result::Result<T, NotificationError>;
 
 #[derive(Debug)]
 pub struct DesktopNotifier {
@@ -17,28 +22,22 @@ impl DesktopNotifier {
         }
     }
 
-    pub fn show(&mut self) -> Option<&NotificationHandle> {
+    pub fn show(&mut self) -> Result<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
             // No need to create new `Notification` as we can just show
             // the previously created one via it's `update` method.
             handle.update();
-            log::debug!("reused previously defined desktop notification");
+
+            log::debug!("cached desktop notification shown");
+
+            Ok(self.handle.as_ref().expect("cached notification missing"))
         } else {
-            match self.notification().show() {
-                Ok(handle) => {
-                    self.handle = Some(handle);
-                }
-                Err(e) => {
-                    log::warn!("showing desktop notification failed: {}", e);
-                }
-            }
-        }
+            self.handle = Some(self.notification().show()?);
 
-        if self.handle.is_some() {
-            log::debug!("desktop notification shown");
-        }
+            log::debug!("desktop notification shown and cached");
 
-        self.handle.as_ref()
+            Ok(self.handle.as_ref().expect("cached notification missing"))
+        }
     }
 
     fn notification(&self) -> Notification {
