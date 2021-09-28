@@ -27,14 +27,25 @@ fn main() {
 
     match opts.cmd {
         cli::Command::Notify { threshold, model } => {
-            let mut app = application::App::new(
+            let mut app = match application::App::new(
                 opts.verbose,
                 threshold,
                 model.as_deref(),
-            );
+            ) {
+                Ok(app) => app,
+                Err(e) => {
+                    println!("{}", e);
+                    return;
+                }
+            };
 
             event::event_loop(&mut app);
         }
-        cli::Command::Batteries => battery::print_batteries(),
+        cli::Command::Batteries => match battery::print_devices() {
+            Ok(_) => {}
+            Err(e) => {
+                println!("{}", e);
+            }
+        },
     }
 }
