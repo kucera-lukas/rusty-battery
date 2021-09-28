@@ -2,16 +2,16 @@ use std::thread;
 use std::time;
 
 use crate::application::App;
-use crate::battery::{BatteryInfo, BatteryState};
+use crate::battery::{BatteryDevice, BatteryState};
 use crate::notification::Notifier;
 
 /// Loop infinitely processing battery charge threshold events.
 pub fn event_loop(app: &mut App) {
     loop {
-        below_threshold(app.settings.threshold, &mut app.battery_info);
+        below_threshold(app.settings.threshold, &mut app.battery_device);
         above_threshold(
             app.settings.threshold,
-            &mut app.battery_info,
+            &mut app.battery_device,
             &mut app.notifier,
         );
     }
@@ -20,13 +20,13 @@ pub fn event_loop(app: &mut App) {
 /// Loop for as long as battery percentage is lower than threshold.
 ///
 /// `BatteryInfo` is refreshed every 30 seconds to check updated values.
-fn below_threshold(threshold: u8, battery_info: &mut BatteryInfo) {
+fn below_threshold(threshold: u8, battery_device: &mut BatteryDevice) {
     let threshold = threshold;
 
-    while battery_info.percentage < threshold {
+    while battery_device.percentage < threshold {
         log::info!("battery is below the {}% threshold", threshold);
 
-        sleep_and_refresh(30, battery_info);
+        sleep_and_refresh(30, battery_device);
     }
 }
 
@@ -38,24 +38,24 @@ fn below_threshold(threshold: u8, battery_info: &mut BatteryInfo) {
 /// state is `CHARGING`.
 fn above_threshold(
     threshold: u8,
-    battery_info: &mut BatteryInfo,
+    battery_device: &mut BatteryDevice,
     notifier: &mut Notifier,
 ) {
-    while battery_info.percentage >= threshold {
+    while battery_device.percentage >= threshold {
         log::info!("battery is above the {}% threshold", &threshold);
 
-        if battery_info.state == BatteryState::Charging {
+        if battery_device.state == BatteryState::Charging {
             notifier.notify();
         }
 
-        sleep_and_refresh(30, battery_info);
+        sleep_and_refresh(30, battery_device);
     }
 }
 
 /// Refresh given `BatteryInfo` instance and sleep for the given amount of seconds.
-fn sleep_and_refresh(secs: u64, battery_info: &mut BatteryInfo) {
+fn sleep_and_refresh(secs: u64, battery_device: &mut BatteryDevice) {
     sleep(secs);
-    battery_info.refresh();
+    battery_device.refresh();
 }
 
 /// Put the current thread to sleep for the specified amount of seconds.
