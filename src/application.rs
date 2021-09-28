@@ -1,4 +1,7 @@
-use crate::battery::BatteryInfo;
+use std::convert::TryFrom as _;
+
+use crate::battery::BatteryDevice;
+use crate::error::BatteryError;
 use crate::notification::Notifier;
 
 #[derive(Debug)]
@@ -10,17 +13,21 @@ pub struct UserSettings {
 #[derive(Debug)]
 pub struct App {
     pub settings: UserSettings,
-    pub battery_info: BatteryInfo,
+    pub battery_device: BatteryDevice,
     pub notifier: Notifier,
 }
 
 impl App {
-    pub fn new(verbose: u8, threshold: u8, model: Option<&str>) -> Self {
-        Self {
+    pub fn new(
+        verbose: u8,
+        threshold: u8,
+        model: Option<&str>,
+    ) -> Result<Self, BatteryError> {
+        Ok(Self {
             settings: UserSettings { verbose, threshold },
-            battery_info: BatteryInfo::new(model),
+            battery_device: BatteryDevice::try_from(model)?,
             notifier: Notifier::new(threshold),
-        }
+        })
     }
 }
 
@@ -43,8 +50,8 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(
                 f,
-                "settings: {}, battery_info: {}, notifier: {}",
-                self.settings, self.battery_info, self.notifier,
+                "settings: {}, battery_device: {}, notifier: {}",
+                self.settings, self.battery_device, self.notifier,
             )
         }
     }
