@@ -1,164 +1,206 @@
 //! Battery information.
+use std::convert::TryFrom;
+
+use crate::error::{BatteryError, DeviceError, Model};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BatteryState {
     Charging,
     Discharging,
+    Unknown,
 }
 
 #[derive(Debug)]
-pub struct BatteryInfo {
+pub struct BatteryDevice {
     pub percentage: u8,
     pub state: BatteryState,
+    pub model: String,
+    pub serial_number: String,
 
-    device: battery::Battery,
+    battery: battery::Battery,
 }
 
-impl BatteryInfo {
+impl BatteryDevice {
     /// Construct a new `BatteryInfo` instance.
-    pub fn new(model: Option<&str>) -> Self {
-        let device = device(model);
+    #[allow(dead_code)]
+    pub fn new(model: &str) -> Result<Self, BatteryError> {
+        let battery = find_battery(model)?;
 
-        Self {
-            percentage: percentage(&device),
-            state: state(&device),
-            device,
-        }
+        Ok(Self {
+            percentage: fetch_percentage(&battery),
+            state: fetch_state(&battery),
+            model: fetch_model(&battery)?,
+            serial_number: fetch_serial_number(&battery)?,
+            battery,
+        })
     }
 
     /// Update attributes to current battery values.
     pub fn refresh(&mut self) -> &mut Self {
-        self.refresh_percentage().refresh_state()
-    }
+        self.refresh_percentage();
+        self.refresh_state();
 
-    /// Update battery percentage to current value.
-    fn refresh_percentage(&mut self) -> &mut Self {
-        self.percentage = percentage(&self.device);
+        log::info!("refreshed: {}", self);
+
         self
     }
 
-    /// Update `BatteryState` to current state.
-    fn refresh_state(&mut self) -> &mut Self {
-        self.state = state(&self.device);
-        self
+    /// Refresh and return battery percentage.
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    fn refresh_percentage(&mut self) -> u8 {
+        let percentage = fetch_percentage(&self.battery);
+        self.percentage = percentage;
+
+        self.log(&format!("battery percentage = {}%", percentage));
+
+        percentage
+    }
+
+    /// Refresh and return `BatteryState`.
+    fn refresh_state(&mut self) -> BatteryState {
+        let state = fetch_state(&self.battery);
+        self.state = state;
+
+        self.log(&format!("state = {}", state));
+
+        state
+    }
+
+    fn log(&self, message: &str) {
+        log::debug!("Battery Device {}: {}", self.serial_number, message);
     }
 }
 
-/// Print all available batteries formatted in a nice and readable way.
+impl TryFrom<battery::Battery> for BatteryDevice {
+    type Error = BatteryError;
+
+    fn try_from(device: battery::Battery) -> Result<Self, Self::Error> {
+        Ok(Self {
+            percentage: fetch_percentage(&device),
+            state: fetch_state(&device),
+            model: fetch_model(&device)?,
+            serial_number: fetch_serial_number(&device)?,
+            battery: device,
+        })
+    }
+}
+
+impl TryFrom<Option<&str>> for BatteryDevice {
+    type Error = BatteryError;
+
+    fn try_from(value: Option<&str>) -> Result<Self, Self::Error> {
+        match value {
+            None => Self::try_from(one_battery()?),
+            Some(value) => Self::try_from(find_battery(value)?),
+        }
+    }
+}
+/// Print all available `BatteryDevice` instances formatted in a nice and readable way.
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
-pub fn print_batteries() {
-    batteries().enumerate().for_each(|(idx, battery)| {
-        println!(
-            "Battery Device {}: model = {}, percentage = {}, state = {}",
-            idx + 1,
-            battery.model().unwrap(),
-            percentage(&battery),
-            state(&battery),
-        );
-    });
+pub fn print_devices() -> Result<(), BatteryError> {
+    devices()?
+        .iter()
+        .for_each(|battery| println!("{}", battery));
+    Ok(())
+}
+
+/// Return `Vec` of all available `battery::Battery` devices.
+fn devices() -> Result<Vec<BatteryDevice>, BatteryError> {
+    batteries()?.map(BatteryDevice::try_from).collect()
 }
 
 /// Return `Iterator` over all available `battery::Battery` devices.
-fn batteries() -> impl Iterator<Item = battery::Battery> {
-    battery::Manager::new()
-        // this never panics on linux
-        .unwrap()
-        .batteries()
-        .expect("failed to read the /sys/class/power_supply directory")
+fn batteries() -> Result<impl Iterator<Item = battery::Battery>, BatteryError>
+{
+    Ok(battery::Manager::new()?
+        .batteries()?
         .take_while(Result::is_ok)
-        .flatten()
+        .flatten())
 }
 
-/// Return an instance of `battery::Battery`.
-///
-/// # Panics
-///
-/// If no `battery::Battery` was found.
-/// If `model` was `None` and more than one `battery::Battery` exists.
-/// If `model` was `Some` and the method `model` of each `battery::Battery` device did not match it.
-fn device(model: Option<&str>) -> battery::Battery {
-    let mut batteries = batteries();
+/// Return `battery::Battery` instance if it's the only one found for the current device.
+fn one_battery() -> Result<battery::Battery, BatteryError> {
+    let mut batteries = batteries()?;
 
-    match model {
-        None => match batteries.next() {
-            None => panic!("no battery devices found"),
-            Some(battery) => match batteries.next() {
-                // only one battery device found so specifying model would not change anything
-                // this should be the most common case
-                None => battery,
-                Some(_) => panic!(
-                    "multiple battery devices found, please specify which model to use"
-                )
-            },
+    match batteries.next() {
+        None => Err(BatteryError::NotFound { model: Model(None) }),
+        Some(battery) => match batteries.next() {
+            None => Ok(battery),
+            Some(_) => Err(BatteryError::NotFound { model: Model(None) }),
         },
-        Some(model) => match batteries
-            .find(|battery| battery.model() == Some(model))
-        {
-            None => panic!(
-                "no battery device with model = \"{}\" was found",
-                model
-            ),
-            Some(battery) => battery,
-        },
+    }
+}
+
+/// Return `battery::Battery` instance which matches the given model name.
+fn find_battery(model: &str) -> Result<battery::Battery, BatteryError> {
+    match batteries()?.find(|battery| battery.model() == Some(model)) {
+        None => Err(BatteryError::NotFound {
+            model: Model(Some(model.to_owned())),
+        }),
+        Some(battery) => Ok(battery),
     }
 }
 
 /// Return current battery percentage of the given `battery::Battery` device.
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-fn percentage(device: &battery::Battery) -> u8 {
-    let percentage = device
+fn fetch_percentage(device: &battery::Battery) -> u8 {
+    device
         .state_of_charge()
         .get::<battery::units::ratio::percent>()
-        .trunc() as u8;
-
-    log::debug!("current battery percentage = {}%", percentage);
-
-    percentage
+        .trunc() as u8
 }
 
 /// Return current `BatterState` of the given `battery::Battery` device.
-///
-/// # Panics
-///
-/// If the `state` method of the given `battery::Battery` device
-/// returns `battery::State::Unknown`.
-fn state(device: &battery::Battery) -> BatteryState {
-    let state = device.state();
-
-    log::debug!("current battery state = {}", state);
-
-    match state {
+fn fetch_state(device: &battery::Battery) -> BatteryState {
+    match device.state() {
         battery::State::Charging | battery::State::Full => {
             BatteryState::Charging
         }
         battery::State::Discharging | battery::State::Empty => {
             BatteryState::Discharging
         }
-        _ => panic!("unknown battery state: {}", state),
+        _ => BatteryState::Unknown,
     }
+}
+
+/// Return battery model of the given `battery::Battery` device.
+fn fetch_model(device: &battery::Battery) -> Result<String, DeviceError> {
+    Ok(device.model().ok_or(DeviceError::Model)?.to_owned())
+}
+
+/// Return serial number of the given `battery::Battery` device.
+fn fetch_serial_number(
+    device: &battery::Battery,
+) -> Result<String, DeviceError> {
+    Ok(device
+        .serial_number()
+        .ok_or(DeviceError::SerialNumber)?
+        .trim()
+        .to_owned())
 }
 
 mod std_fmt_impls {
     use std::fmt;
 
-    use super::{BatteryInfo, BatteryState};
+    use super::{BatteryDevice, BatteryState};
 
     impl fmt::Display for BatteryState {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             match self {
                 Self::Charging => write!(f, "Charging"),
                 Self::Discharging => write!(f, "Discharging"),
+                Self::Unknown => write!(f, "Unknown"),
             }
         }
     }
 
-    impl fmt::Display for BatteryInfo {
+    impl fmt::Display for BatteryDevice {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "battery percentage: {}%, state: {}",
-                self.percentage, self.state,
+                "Battery Device {}: percentage = {}%, state = {}, model = {}",
+                self.serial_number, self.percentage, self.state, self.model,
             )
         }
     }
