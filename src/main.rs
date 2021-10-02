@@ -39,7 +39,10 @@ fn main() {
                 }
             };
 
-            event::event_loop(&mut app);
+            match event::event_loop(&mut app) {
+                Ok(_) => {}
+                Err(e) => eprintln!("{}", e),
+            };
         }
         cli::Command::Batteries => match battery::print_devices() {
             Ok(_) => {}

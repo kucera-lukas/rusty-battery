@@ -1,7 +1,11 @@
 //! Battery information.
 use std::convert::TryFrom;
+use std::result;
 
 use crate::error::{BatteryError, DeviceError, Model};
+
+type BatteryResult<T> = result::Result<T, BatteryError>;
+type DeviceResult<T> = result::Result<T, DeviceError>;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BatteryState {
@@ -23,7 +27,7 @@ pub struct BatteryDevice {
 impl BatteryDevice {
     /// Construct a new `BatteryInfo` instance.
     #[allow(dead_code)]
-    pub fn new(model: &str) -> Result<Self, BatteryError> {
+    pub fn new(model: &str) -> BatteryResult<Self> {
         let battery = find_battery(model)?;
 
         Ok(Self {
@@ -36,13 +40,15 @@ impl BatteryDevice {
     }
 
     /// Update attributes to current battery values.
-    pub fn refresh(&mut self) -> &mut Self {
+    pub fn refresh(&mut self) -> BatteryResult<&mut Self> {
+        self.battery.refresh()?;
+
         self.refresh_percentage();
         self.refresh_state();
 
         log::info!("refreshed = {}", self);
 
-        self
+        Ok(self)
     }
 
     /// Refresh and return battery percentage.
@@ -102,7 +108,7 @@ impl TryFrom<Option<&str>> for BatteryDevice {
 /// Print all available `BatteryDevice` instances formatted in a nice and readable way.
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
-pub fn print_devices() -> Result<(), BatteryError> {
+pub fn print_devices() -> BatteryResult<()> {
     devices()?
         .iter()
         .for_each(|battery| println!("{}", battery));
@@ -110,13 +116,12 @@ pub fn print_devices() -> Result<(), BatteryError> {
 }
 
 /// Return `Vec` of all available `battery::Battery` devices.
-fn devices() -> Result<Vec<BatteryDevice>, BatteryError> {
+fn devices() -> BatteryResult<Vec<BatteryDevice>> {
     batteries()?.map(BatteryDevice::try_from).collect()
 }
 
 /// Return `Iterator` over all available `battery::Battery` devices.
-fn batteries() -> Result<impl Iterator<Item = battery::Battery>, BatteryError>
-{
+fn batteries() -> BatteryResult<impl Iterator<Item = battery::Battery>> {
     Ok(battery::Manager::new()?
         .batteries()?
         .take_while(Result::is_ok)
@@ -124,7 +129,7 @@ fn batteries() -> Result<impl Iterator<Item = battery::Battery>, BatteryError>
 }
 
 /// Return `battery::Battery` instance if it's the only one found for the current device.
-fn one_battery() -> Result<battery::Battery, BatteryError> {
+fn one_battery() -> BatteryResult<battery::Battery> {
     let mut batteries = batteries()?;
 
     match batteries.next() {
@@ -137,7 +142,7 @@ fn one_battery() -> Result<battery::Battery, BatteryError> {
 }
 
 /// Return `battery::Battery` instance which matches the given model name.
-fn find_battery(model: &str) -> Result<battery::Battery, BatteryError> {
+fn find_battery(model: &str) -> BatteryResult<battery::Battery> {
     match batteries()?.find(|battery| battery.model() == Some(model)) {
         None => Err(BatteryError::NotFound {
             model: Model(Some(model.to_owned())),
@@ -169,14 +174,12 @@ fn fetch_state(device: &battery::Battery) -> BatteryState {
 }
 
 /// Return battery model of the given `battery::Battery` device.
-fn fetch_model(device: &battery::Battery) -> Result<String, DeviceError> {
+fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
     Ok(device.model().ok_or(DeviceError::Model)?.to_owned())
 }
 
 /// Return serial number of the given `battery::Battery` device.
-fn fetch_serial_number(
-    device: &battery::Battery,
-) -> Result<String, DeviceError> {
+fn fetch_serial_number(device: &battery::Battery) -> DeviceResult<String> {
     Ok(device
         .serial_number()
         .ok_or(DeviceError::SerialNumber)?
