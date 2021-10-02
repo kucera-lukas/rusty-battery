@@ -40,7 +40,7 @@ impl BatteryDevice {
         self.refresh_percentage();
         self.refresh_state();
 
-        log::info!("refreshed: {}", self);
+        log::info!("refreshed = {}", self);
 
         self
     }
@@ -51,7 +51,7 @@ impl BatteryDevice {
         let percentage = fetch_percentage(&self.battery);
         self.percentage = percentage;
 
-        self.log(&format!("battery percentage = {}%", percentage));
+        self.debug(&format!("battery percentage = {}%", percentage));
 
         percentage
     }
@@ -61,12 +61,12 @@ impl BatteryDevice {
         let state = fetch_state(&self.battery);
         self.state = state;
 
-        self.log(&format!("state = {}", state));
+        self.debug(&format!("state = {}", state));
 
         state
     }
 
-    fn log(&self, message: &str) {
+    fn debug(&self, message: &str) {
         log::debug!("Battery Device {}: {}", self.serial_number, message);
     }
 }
@@ -75,13 +75,17 @@ impl TryFrom<battery::Battery> for BatteryDevice {
     type Error = BatteryError;
 
     fn try_from(device: battery::Battery) -> Result<Self, Self::Error> {
-        Ok(Self {
+        let device = Self {
             percentage: fetch_percentage(&device),
             state: fetch_state(&device),
             model: fetch_model(&device)?,
             serial_number: fetch_serial_number(&device)?,
             battery: device,
-        })
+        };
+
+        log::info!("created = {}", device);
+
+        Ok(device)
     }
 }
 
