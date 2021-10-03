@@ -66,11 +66,7 @@ mod std_fmt_impls {
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(
-                f,
-                "threshold: {}, handle: {:?}",
-                self.threshold, self.handle
-            )
+            write!(f, "Desktop: threshold = {}", self.threshold,)
         }
     }
 }
