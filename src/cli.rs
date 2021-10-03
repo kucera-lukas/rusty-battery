@@ -24,8 +24,10 @@ pub enum Command {
         #[structopt(short, long)]
         model: Option<String>,
     },
-    /// Show a list of all available batteries of the current device.
+    /// List all available batteries of the current device.
     Batteries,
+    /// List all available KDE Connect devices.
+    KDEConnectDevices,
 }
 
 pub fn parse() -> Opts {

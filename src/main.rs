@@ -42,6 +42,7 @@ fn run_app() -> error::Result<()> {
             notify(threshold, model.as_deref())?;
         }
         cli::Command::Batteries => batteries()?,
+        cli::Command::KDEConnectDevices => kde_connect_devices()?,
     }
 
     Ok(())
@@ -59,4 +60,8 @@ fn notify(threshold: u8, model: Option<&str>) -> error::Result<()> {
 
 fn batteries() -> error::Result<()> {
     Ok(battery::print_devices()?)
+}
+
+fn kde_connect_devices() -> error::Result<()> {
+    Ok(notification::kde_connect::print_devices()?)
 }

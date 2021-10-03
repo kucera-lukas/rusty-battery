@@ -1,5 +1,5 @@
-mod desktop;
-mod kde_connect;
+pub mod desktop;
+pub mod kde_connect;
 
 use std::convert::TryFrom;
 

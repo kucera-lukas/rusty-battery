@@ -34,6 +34,13 @@ pub struct Device {
     name: String,
 }
 
+pub fn print_devices() -> KDEConnectResult<()> {
+    device_vec()?
+        .iter()
+        .for_each(|device| println!("{}", device));
+    Ok(())
+}
+
 fn device_vec() -> KDEConnectResult<Vec<Device>> {
     String::from_utf8_lossy(
         execute(&["--list-devices", "--id-name-only"])?
