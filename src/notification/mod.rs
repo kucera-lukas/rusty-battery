@@ -1,5 +1,10 @@
 mod desktop;
-pub mod kde_connect;
+mod kde_connect;
+
+use std::convert::TryFrom;
+
+use crate::common;
+use crate::error::{Error, Result};
 
 #[derive(Debug)]
 pub struct Notifier {
@@ -9,21 +14,27 @@ pub struct Notifier {
 
 impl Notifier {
     /// Create a new `Notifier` instance.
-    pub fn new(threshold: u8) -> Self {
-        Self {
+    pub fn new(threshold: u8) -> Result<Self> {
+        Ok(Self {
             desktop: desktop::DesktopNotifier::new(threshold),
-            kde_connect: kde_connect::KDENotifier::new(threshold),
-        }
+            kde_connect: kde_connect::KDENotifier::new(threshold)?,
+        })
     }
 
     /// Send notification on every platform.
     pub fn notify(&mut self) {
-        match self.desktop.show() {
-            Ok(_) => {}
-            Err(e) => log::warn!("{}", e),
-        };
-        self.kde_connect.ping();
+        common::warn_on_err(self.desktop.show());
+        common::warn_on_err(self.kde_connect.ping());
+
         log::info!("all notifications sent");
+    }
+}
+
+impl TryFrom<u8> for Notifier {
+    type Error = Error;
+
+    fn try_from(value: u8) -> Result<Self> {
+        Self::new(value)
     }
 }
 
