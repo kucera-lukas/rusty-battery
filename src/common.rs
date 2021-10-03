@@ -18,6 +18,13 @@ where
     }
 }
 
+pub fn print_vec<T>(vec: Vec<T>)
+where
+    T: Display,
+{
+    vec.iter().for_each(|item| println!("{}", item));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
