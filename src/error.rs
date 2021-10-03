@@ -52,6 +52,8 @@ pub enum KDEConnect {
 
 #[derive(Error, Debug)]
 pub enum KDEConnectDevice {
+    #[error("KDE Connect device not found: name = {name}")]
+    NotFound { name: String },
     #[error("failed to retrieve device id")]
     ID,
     #[error("failed to retrieve device name")]
