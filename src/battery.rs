@@ -1,6 +1,7 @@
 //! Battery information.
 use std::convert::TryFrom;
 
+use crate::common;
 use crate::error::{
     BatteryDeviceError, BatteryDeviceResult, BatteryError, BatteryResult,
     Model,
@@ -108,9 +109,7 @@ impl TryFrom<Option<&str>> for BatteryDevice {
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
 pub fn print_devices() -> BatteryResult<()> {
-    devices()?
-        .iter()
-        .for_each(|battery| println!("{}", battery));
+    common::print_vec(devices()?);
     Ok(())
 }
 
