@@ -10,17 +10,10 @@ categories = ['command-line-utilities']
 edition = "2018"
 
 [dependencies]
-# cli
 structopt = "0.3"
-
-# error handling
 thiserror = "1.0.29"
-
-# logging
 chrono = "0.4.19"
 env_logger = "0.9.0"
 log = "0.4.14"
-
-# application dependencies
 battery = "0.7.8"
 notify-rust = "4"

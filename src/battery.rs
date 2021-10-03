@@ -92,7 +92,7 @@ impl TryFrom<battery::Battery> for Device {
             battery: device,
         };
 
-        log::info!("created = {}", device);
+        log::info!("{}", device);
 
         Ok(device)
     }

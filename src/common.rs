@@ -25,6 +25,16 @@ where
     slice.iter().for_each(|item| println!("{}", item));
 }
 
+pub fn format_option<T>(option: &Option<T>) -> String
+where
+    T: Display,
+{
+    match option {
+        None => "None".into(),
+        Some(value) => format!("{}", value),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
