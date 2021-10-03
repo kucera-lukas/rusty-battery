@@ -1,15 +1,19 @@
+use std::result;
+
 use notify_rust::{Notification, NotificationHandle, Urgency};
 
 use crate::common;
-use crate::error::NotificationResult;
+use crate::error;
+
+type Result<T> = result::Result<T, error::Notification>;
 
 #[derive(Debug)]
-pub struct DesktopNotifier {
+pub struct Notifier {
     threshold: u8,
     handle: Option<NotificationHandle>,
 }
 
-impl DesktopNotifier {
+impl Notifier {
     /// Return a new `DesktopNotifier` instance.
     pub const fn new(threshold: u8) -> Self {
         Self {
@@ -18,7 +22,7 @@ impl DesktopNotifier {
         }
     }
 
-    pub fn show(&mut self) -> NotificationResult<&NotificationHandle> {
+    pub fn show(&mut self) -> Result<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
             // No need to create new `Notification` as we can just show
             // the previously created one via it's `update` method.
@@ -58,9 +62,9 @@ fn create_notification(summary: &str, body: &str) -> Notification {
 mod std_fmt_impls {
     use std::fmt;
 
-    use super::DesktopNotifier;
+    use super::Notifier;
 
-    impl fmt::Display for DesktopNotifier {
+    impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
@@ -96,14 +100,14 @@ mod tests {
 
     #[test]
     fn test_desktop_notifier_empty_handle() {
-        let notifier = DesktopNotifier::new(0);
+        let notifier = Notifier::new(0);
 
         assert!(notifier.handle.is_none());
     }
 
     #[test]
     fn test_desktop_notifier_notification() {
-        let notifier = DesktopNotifier::new(0);
+        let notifier = Notifier::new(0);
         let notification = notifier.notification();
 
         assert_notification(&notification, "Charge limit warning", &format!(
@@ -124,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_desktop_notifier_display() {
-        let notifier = DesktopNotifier::new(0);
+        let notifier = Notifier::new(0);
 
         let display = format!("{}", notifier);
 
