@@ -1,11 +1,10 @@
 //! Battery information.
 use std::convert::TryFrom;
-use std::result;
 
-use crate::error::{BatteryError, DeviceError, Model};
-
-type BatteryResult<T> = result::Result<T, BatteryError>;
-type DeviceResult<T> = result::Result<T, DeviceError>;
+use crate::error::{
+    BatteryDeviceError, BatteryDeviceResult, BatteryError, BatteryResult,
+    Model,
+};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum BatteryState {
@@ -174,15 +173,17 @@ fn fetch_state(device: &battery::Battery) -> BatteryState {
 }
 
 /// Return battery model of the given `battery::Battery` device.
-fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
-    Ok(device.model().ok_or(DeviceError::Model)?.to_owned())
+fn fetch_model(device: &battery::Battery) -> BatteryDeviceResult<String> {
+    Ok(device.model().ok_or(BatteryDeviceError::Model)?.to_owned())
 }
 
 /// Return serial number of the given `battery::Battery` device.
-fn fetch_serial_number(device: &battery::Battery) -> DeviceResult<String> {
+fn fetch_serial_number(
+    device: &battery::Battery,
+) -> BatteryDeviceResult<String> {
     Ok(device
         .serial_number()
-        .ok_or(DeviceError::SerialNumber)?
+        .ok_or(BatteryDeviceError::SerialNumber)?
         .trim()
         .to_owned())
 }

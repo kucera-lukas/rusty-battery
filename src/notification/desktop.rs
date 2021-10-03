@@ -1,11 +1,7 @@
-use std::result;
-
 use notify_rust::{Notification, NotificationHandle, Urgency};
 
 use crate::common;
-use crate::error::NotificationError;
-
-type Result<T> = result::Result<T, NotificationError>;
+use crate::error::NotificationResult;
 
 #[derive(Debug)]
 pub struct DesktopNotifier {
@@ -22,7 +18,7 @@ impl DesktopNotifier {
         }
     }
 
-    pub fn show(&mut self) -> Result<&NotificationHandle> {
+    pub fn show(&mut self) -> NotificationResult<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
             // No need to create new `Notification` as we can just show
             // the previously created one via it's `update` method.
