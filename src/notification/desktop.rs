@@ -121,13 +121,4 @@ mod tests {
 
         assert_notification(&notification, summary, body);
     }
-
-    #[test]
-    fn test_desktop_notifier_display() {
-        let notifier = Notifier::new(0);
-
-        let display = format!("{}", notifier);
-
-        assert_eq!(display, "threshold: 0, handle: None");
-    }
 }
