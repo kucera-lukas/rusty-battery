@@ -9,7 +9,7 @@
     clippy::pedantic,
     clippy::nursery
 )]
-#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::needless_for_each)]
 
 use std::convert::TryFrom;
 use std::process;
@@ -49,11 +49,10 @@ fn run_app() -> error::Result<()> {
 }
 
 fn notify(threshold: u8, model: Option<&str>) -> error::Result<()> {
-    let mut battery_device =
-        battery::BatteryDevice::try_from(model.as_deref())?;
+    let mut battery_device = battery::Device::try_from(model.as_deref())?;
     let mut notifier = notification::Notifier::try_from(threshold)?;
 
-    event::event_loop(threshold, &mut battery_device, &mut notifier)?;
+    event::loop_(threshold, &mut battery_device, &mut notifier)?;
 
     Ok(())
 }

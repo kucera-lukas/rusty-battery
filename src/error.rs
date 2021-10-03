@@ -5,38 +5,31 @@ use thiserror::Error;
 
 pub type Result<T> = result::Result<T, Error>;
 
-pub type BatteryResult<T> = result::Result<T, BatteryError>;
-pub type BatteryDeviceResult<T> = result::Result<T, BatteryDeviceError>;
-
-pub type NotificationResult<T> = result::Result<T, NotificationError>;
-
-pub type KDEConnectResult<T> = result::Result<T, KDEConnectError>;
-
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("something went wrong with battery information: {}", .0)]
-    Battery(#[from] BatteryError),
+    Battery(#[from] Battery),
     #[error("something went wrong with KDE Connect: {}", .0)]
-    KDEConnect(#[from] KDEConnectError),
+    KDEConnect(#[from] KDEConnect),
     #[error("something went wrong with notification: {}", .0)]
-    Notification(#[from] NotificationError),
+    Notification(#[from] Notification),
 }
 
 #[derive(Debug)]
 pub struct Model(pub Option<String>);
 
 #[derive(Error, Debug)]
-pub enum BatteryError {
+pub enum Battery {
     #[error("battery information failure: {}", .0)]
     System(#[from] battery::Error),
     #[error("battery device not found: model = {model}")]
     NotFound { model: Model },
     #[error("battery device error: {}", .0)]
-    Device(#[from] BatteryDeviceError),
+    Device(#[from] BatteryDevice),
 }
 
 #[derive(Error, Debug)]
-pub enum BatteryDeviceError {
+pub enum BatteryDevice {
     #[error("failed to retrieve battery model")]
     Model,
     #[error("failed to retrieve battery serial number")]
@@ -44,21 +37,21 @@ pub enum BatteryDeviceError {
 }
 
 #[derive(Error, Debug)]
-pub enum NotificationError {
+pub enum Notification {
     #[error("something went wrong with desktop notification: {}", .0)]
     Desktop(#[from] notify_rust::error::Error),
 }
 
 #[derive(Error, Debug)]
-pub enum KDEConnectError {
+pub enum KDEConnect {
     #[error("kdeconnect-cli is not installed on this system: {}", .0)]
     Cli(#[from] io::Error),
     #[error("KDE Connect device error: {}", .0)]
-    Device(#[from] KDEConnectDeviceError),
+    Device(#[from] KDEConnectDevice),
 }
 
 #[derive(Error, Debug)]
-pub enum KDEConnectDeviceError {
+pub enum KDEConnectDevice {
     #[error("failed to retrieve device id")]
     ID,
     #[error("failed to retrieve device name")]

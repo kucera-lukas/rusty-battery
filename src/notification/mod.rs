@@ -8,16 +8,16 @@ use crate::error::{Error, Result};
 
 #[derive(Debug)]
 pub struct Notifier {
-    desktop: desktop::DesktopNotifier,
-    kde_connect: kde_connect::KDENotifier,
+    desktop: desktop::Notifier,
+    kde_connect: kde_connect::Notifier,
 }
 
 impl Notifier {
     /// Create a new `Notifier` instance.
     pub fn new(threshold: u8) -> Result<Self> {
         Ok(Self {
-            desktop: desktop::DesktopNotifier::new(threshold),
-            kde_connect: kde_connect::KDENotifier::new(threshold)?,
+            desktop: desktop::Notifier::new(threshold),
+            kde_connect: kde_connect::Notifier::new(threshold)?,
         })
     }
 

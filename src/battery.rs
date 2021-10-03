@@ -1,33 +1,34 @@
 //! Battery information.
 use std::convert::TryFrom;
+use std::result;
 
 use crate::common;
-use crate::error::{
-    BatteryDeviceError, BatteryDeviceResult, BatteryError, BatteryResult,
-    Model,
-};
+use crate::error;
+
+type Result<T> = result::Result<T, error::Battery>;
+type DeviceResult<T> = result::Result<T, error::BatteryDevice>;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub enum BatteryState {
+pub enum State {
     Charging,
     Discharging,
     Unknown,
 }
 
 #[derive(Debug)]
-pub struct BatteryDevice {
+pub struct Device {
     pub percentage: u8,
-    pub state: BatteryState,
+    pub state: State,
     pub model: String,
     pub serial_number: String,
 
     battery: battery::Battery,
 }
 
-impl BatteryDevice {
+impl Device {
     /// Construct a new `BatteryInfo` instance.
     #[allow(dead_code)]
-    pub fn new(model: &str) -> BatteryResult<Self> {
+    pub fn new(model: &str) -> Result<Self> {
         let battery = find_battery(model)?;
 
         Ok(Self {
@@ -40,7 +41,7 @@ impl BatteryDevice {
     }
 
     /// Update attributes to current battery values.
-    pub fn refresh(&mut self) -> BatteryResult<&mut Self> {
+    pub fn refresh(&mut self) -> Result<&mut Self> {
         self.battery.refresh()?;
 
         self.refresh_percentage();
@@ -63,7 +64,7 @@ impl BatteryDevice {
     }
 
     /// Refresh and return `BatteryState`.
-    fn refresh_state(&mut self) -> BatteryState {
+    fn refresh_state(&mut self) -> State {
         let state = fetch_state(&self.battery);
         self.state = state;
 
@@ -77,10 +78,12 @@ impl BatteryDevice {
     }
 }
 
-impl TryFrom<battery::Battery> for BatteryDevice {
-    type Error = BatteryError;
+impl TryFrom<battery::Battery> for Device {
+    type Error = error::Battery;
 
-    fn try_from(device: battery::Battery) -> Result<Self, Self::Error> {
+    fn try_from(
+        device: battery::Battery,
+    ) -> result::Result<Self, Self::Error> {
         let device = Self {
             percentage: fetch_percentage(&device),
             state: fetch_state(&device),
@@ -95,10 +98,10 @@ impl TryFrom<battery::Battery> for BatteryDevice {
     }
 }
 
-impl TryFrom<Option<&str>> for BatteryDevice {
-    type Error = BatteryError;
+impl TryFrom<Option<&str>> for Device {
+    type Error = error::Battery;
 
-    fn try_from(value: Option<&str>) -> Result<Self, Self::Error> {
+    fn try_from(value: Option<&str>) -> result::Result<Self, Self::Error> {
         match value {
             None => Self::try_from(one_battery()?),
             Some(value) => Self::try_from(find_battery(value)?),
@@ -108,45 +111,58 @@ impl TryFrom<Option<&str>> for BatteryDevice {
 /// Print all available `BatteryDevice` instances formatted in a nice and readable way.
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
-pub fn print_devices() -> BatteryResult<()> {
+pub fn print_devices() -> Result<()> {
     common::print_slice(&devices()?);
     Ok(())
 }
 
 /// Return `Vec` of all available `battery::Battery` devices.
-fn devices() -> BatteryResult<Vec<BatteryDevice>> {
-    batteries()?.map(BatteryDevice::try_from).collect()
+fn devices() -> Result<Vec<Device>> {
+    batteries()?
+        .map(|battery| Device::try_from(battery?))
+        .collect()
 }
 
 /// Return `Iterator` over all available `battery::Battery` devices.
-fn batteries() -> BatteryResult<impl Iterator<Item = battery::Battery>> {
-    Ok(battery::Manager::new()?
-        .batteries()?
-        .take_while(Result::is_ok)
-        .flatten())
+fn batteries() -> Result<
+    impl Iterator<Item = result::Result<battery::Battery, battery::Error>>,
+> {
+    Ok(battery::Manager::new()?.batteries()?)
 }
 
 /// Return `battery::Battery` instance if it's the only one found for the current device.
-fn one_battery() -> BatteryResult<battery::Battery> {
+fn one_battery() -> Result<battery::Battery> {
     let mut batteries = batteries()?;
 
     match batteries.next() {
-        None => Err(BatteryError::NotFound { model: Model(None) }),
+        None => Err(error::Battery::NotFound {
+            model: error::Model(None),
+        }),
         Some(battery) => match batteries.next() {
-            None => Ok(battery),
-            Some(_) => Err(BatteryError::NotFound { model: Model(None) }),
+            None => Ok(battery?),
+            Some(_) => Err(error::Battery::NotFound {
+                model: error::Model(None),
+            }),
         },
     }
 }
 
 /// Return `battery::Battery` instance which matches the given model name.
-fn find_battery(model: &str) -> BatteryResult<battery::Battery> {
-    match batteries()?.find(|battery| battery.model() == Some(model)) {
-        None => Err(BatteryError::NotFound {
-            model: Model(Some(model.to_owned())),
-        }),
-        Some(battery) => Ok(battery),
+fn find_battery(model: &str) -> Result<battery::Battery> {
+    for battery in batteries()? {
+        match battery {
+            Ok(battery) => {
+                if battery.model() == Some(model) {
+                    return Ok(battery);
+                }
+            }
+            Err(e) => return Err(error::Battery::from(e)),
+        }
     }
+
+    Err(error::Battery::NotFound {
+        model: error::Model(Some(model.to_owned())),
+    })
 }
 
 /// Return current battery percentage of the given `battery::Battery` device.
@@ -159,30 +175,29 @@ fn fetch_percentage(device: &battery::Battery) -> u8 {
 }
 
 /// Return current `BatterState` of the given `battery::Battery` device.
-fn fetch_state(device: &battery::Battery) -> BatteryState {
+fn fetch_state(device: &battery::Battery) -> State {
     match device.state() {
-        battery::State::Charging | battery::State::Full => {
-            BatteryState::Charging
-        }
+        battery::State::Charging | battery::State::Full => State::Charging,
         battery::State::Discharging | battery::State::Empty => {
-            BatteryState::Discharging
+            State::Discharging
         }
-        _ => BatteryState::Unknown,
+        _ => State::Unknown,
     }
 }
 
 /// Return battery model of the given `battery::Battery` device.
-fn fetch_model(device: &battery::Battery) -> BatteryDeviceResult<String> {
-    Ok(device.model().ok_or(BatteryDeviceError::Model)?.to_owned())
+fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
+    Ok(device
+        .model()
+        .ok_or(error::BatteryDevice::Model)?
+        .to_owned())
 }
 
 /// Return serial number of the given `battery::Battery` device.
-fn fetch_serial_number(
-    device: &battery::Battery,
-) -> BatteryDeviceResult<String> {
+fn fetch_serial_number(device: &battery::Battery) -> DeviceResult<String> {
     Ok(device
         .serial_number()
-        .ok_or(BatteryDeviceError::SerialNumber)?
+        .ok_or(error::BatteryDevice::SerialNumber)?
         .trim()
         .to_owned())
 }
@@ -190,9 +205,9 @@ fn fetch_serial_number(
 mod std_fmt_impls {
     use std::fmt;
 
-    use super::{BatteryDevice, BatteryState};
+    use super::{Device, State};
 
-    impl fmt::Display for BatteryState {
+    impl fmt::Display for State {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             match self {
                 Self::Charging => write!(f, "Charging"),
@@ -202,7 +217,7 @@ mod std_fmt_impls {
         }
     }
 
-    impl fmt::Display for BatteryDevice {
+    impl fmt::Display for Device {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
@@ -219,7 +234,7 @@ mod tests {
 
     #[test]
     fn test_battery_state_charging_display() {
-        let state = BatteryState::Charging;
+        let state = State::Charging;
 
         let display = format!("{}", state);
 
@@ -228,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_battery_state_discharging_display() {
-        let state = BatteryState::Discharging;
+        let state = State::Discharging;
 
         let display = format!("{}", state);
 

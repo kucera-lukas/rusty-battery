@@ -2,21 +2,21 @@ use std::result;
 use std::thread;
 use std::time;
 
-use crate::battery::{BatteryDevice, BatteryState};
-use crate::error::BatteryError;
+use crate::battery;
+use crate::error;
 use crate::notification::Notifier;
 
-type Result<T> = result::Result<T, BatteryError>;
+type Result<T> = result::Result<T, error::Battery>;
 
 /// Loop infinitely processing battery charge threshold events.
-pub fn event_loop(
+pub fn loop_(
     threshold: u8,
-    battery_device: &mut BatteryDevice,
+    battery_device: &mut battery::Device,
     notifier: &mut Notifier,
 ) -> Result<()> {
     loop {
         if battery_device.percentage >= threshold
-            && battery_device.state == BatteryState::Charging
+            && battery_device.state == battery::State::Charging
         {
             notifier.notify();
         }
@@ -28,7 +28,7 @@ pub fn event_loop(
 /// Refresh given `BatteryInfo` instance and sleep for the given amount of seconds.
 fn sleep_and_refresh(
     secs: u64,
-    battery_device: &mut BatteryDevice,
+    battery_device: &mut battery::Device,
 ) -> Result<()> {
     sleep(secs);
     battery_device.refresh()?;
