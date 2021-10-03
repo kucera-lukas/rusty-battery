@@ -5,6 +5,13 @@ use crate::common;
 use crate::error;
 
 type Result<T> = result::Result<T, error::KDEConnect>;
+type DeviceResult<T> = result::Result<T, error::KDEConnectDevice>;
+
+#[derive(Clone, Debug)]
+pub struct Device {
+    id: String,
+    name: String,
+}
 
 #[derive(Debug)]
 pub struct Notifier {
@@ -13,11 +20,25 @@ pub struct Notifier {
 }
 
 impl Notifier {
-    pub fn new(threshold: u8) -> Result<Self> {
-        Ok(Self {
+    pub fn new(threshold: u8, device_names: Vec<String>) -> Result<Self> {
+        log::debug!("creating KDE Connect notifier...");
+
+        let devices = device_vec()?;
+
+        let result = Self {
             threshold,
-            devices: device_vec()?,
-        })
+            devices: match device_names.is_empty() {
+                true => devices,
+                false => device_names
+                    .iter()
+                    .map(|name| find_device(&devices, &name))
+                    .collect::<DeviceResult<Vec<Device>>>()?,
+            },
+        };
+
+        log::debug!("{}", result);
+
+        Ok(result)
     }
 
     pub fn ping(&self) -> Result<()> {
@@ -29,12 +50,6 @@ impl Notifier {
 
         Ok(())
     }
-}
-
-#[derive(Debug)]
-pub struct Device {
-    id: String,
-    name: String,
 }
 
 pub fn print_devices() -> Result<()> {
@@ -56,6 +71,16 @@ fn device_vec() -> Result<Vec<Device>> {
         Ok(Device { id, name })
     })
     .collect()
+}
+
+fn find_device(devices: &Vec<Device>, name: &str) -> DeviceResult<Device> {
+    Ok(devices
+        .iter()
+        .find(|device| device.name == name)
+        .ok_or(error::KDEConnectDevice::NotFound {
+            name: name.to_owned(),
+        })?
+        .clone())
 }
 
 fn ping(id: &str, message: &str) -> Result<()> {
@@ -98,7 +123,7 @@ mod std_fmt_impls {
 
             write!(
                 f,
-                "KDENotifier: threshold = {}, devices = [{}]",
+                "KDE Connect Notifier: threshold = {}, devices = [{}]",
                 self.threshold, devices
             )
         }
