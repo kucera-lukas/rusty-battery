@@ -19,7 +19,7 @@ impl Notifier {
         let desktop = Some(desktop::Notifier::new(threshold));
         let kde_connect = {
             if let Some(names) = kde_connect_names {
-                Some(kde_connect::Notifier::new(threshold, names)?)
+                Some(kde_connect::Notifier::new(threshold, &names)?)
             } else {
                 None
             }

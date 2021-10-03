@@ -20,19 +20,20 @@ pub struct Notifier {
 }
 
 impl Notifier {
-    pub fn new(threshold: u8, device_names: Vec<String>) -> Result<Self> {
+    pub fn new(threshold: u8, device_names: &[String]) -> Result<Self> {
         log::debug!("creating KDE Connect notifier...");
 
         let devices = device_vec()?;
 
         let result = Self {
             threshold,
-            devices: match device_names.is_empty() {
-                true => devices,
-                false => device_names
+            devices: if device_names.is_empty() {
+                devices
+            } else {
+                device_names
                     .iter()
-                    .map(|name| find_device(&devices, &name))
-                    .collect::<DeviceResult<Vec<Device>>>()?,
+                    .map(|name| find_device(&devices, name))
+                    .collect::<DeviceResult<Vec<Device>>>()?
             },
         };
 
@@ -73,7 +74,7 @@ fn device_vec() -> Result<Vec<Device>> {
     .collect()
 }
 
-fn find_device(devices: &Vec<Device>, name: &str) -> DeviceResult<Device> {
+fn find_device(devices: &[Device], name: &str) -> DeviceResult<Device> {
     Ok(devices
         .iter()
         .find(|device| device.name == name)
