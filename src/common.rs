@@ -18,11 +18,11 @@ where
     }
 }
 
-pub fn print_vec<T>(vec: Vec<T>)
+pub fn print_slice<T>(slice: &[T])
 where
     T: Display,
 {
-    vec.iter().for_each(|item| println!("{}", item));
+    slice.iter().for_each(|item| println!("{}", item));
 }
 
 #[cfg(test)]

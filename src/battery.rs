@@ -109,7 +109,7 @@ impl TryFrom<Option<&str>> for BatteryDevice {
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
 pub fn print_devices() -> BatteryResult<()> {
-    common::print_vec(devices()?);
+    common::print_slice(&devices()?);
     Ok(())
 }
 

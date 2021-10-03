@@ -35,7 +35,7 @@ pub struct Device {
 }
 
 pub fn print_devices() -> KDEConnectResult<()> {
-    common::print_vec(device_vec()?);
+    common::print_slice(&device_vec()?);
     Ok(())
 }
 
