@@ -63,11 +63,7 @@ mod std_fmt_impls {
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(
-                f,
-                "threshold: {}, handle: {:?}",
-                self.threshold, self.handle
-            )
+            write!(f, "Desktop: threshold = {}", self.threshold,)
         }
     }
 }
@@ -121,14 +117,5 @@ mod tests {
         let notification = create_notification(summary, body);
 
         assert_notification(&notification, summary, body);
-    }
-
-    #[test]
-    fn test_desktop_notifier_display() {
-        let notifier = Notifier::new(0);
-
-        let display = format!("{}", notifier);
-
-        assert_eq!(display, "threshold: 0, handle: None");
     }
 }
