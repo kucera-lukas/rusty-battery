@@ -17,6 +17,9 @@ pub enum Command {
     /// Notify whenever battery percentage exceeds the given threshold.
     Notify {
         /// Battery charge threshold
+        ///
+        /// Whenever the chosen battery device reaches this charge threshold and will be
+        /// charging, notifications will be sent, alerting that the charger should be unplugged.
         #[structopt(short, long, default_value = "80")]
         threshold: u8,
 
@@ -29,6 +32,13 @@ pub enum Command {
         /// to get the model of the wanted battery device which should be monitored.
         #[structopt(short, long)]
         model: Option<String>,
+
+        /// Number of seconds to wait before refreshing battery device data
+        ///
+        /// After every battery device refresh, its data will be checked. Notifications will be
+        /// sent everytime they should be, based on the new refreshed battery device data.
+        #[structopt(long, default_value = "30")]
+        refresh_secs: u64,
 
         /// KDE Connect device names
         ///

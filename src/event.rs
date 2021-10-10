@@ -10,18 +10,18 @@ type Result<T> = result::Result<T, error::Battery>;
 
 /// Loop infinitely processing battery charge threshold events.
 pub fn loop_(
-    threshold: u8,
     battery_device: &mut battery::Device,
     notifier: &mut Notifier,
+    refresh_secs: u64,
 ) -> Result<()> {
     loop {
-        if battery_device.percentage >= threshold
+        if battery_device.percentage >= notifier.threshold
             && battery_device.state == battery::State::Charging
         {
             notifier.notify();
         }
 
-        sleep_and_refresh(30, battery_device)?;
+        sleep_and_refresh(refresh_secs, battery_device)?;
     }
 }
 

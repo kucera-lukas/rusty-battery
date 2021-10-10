@@ -8,6 +8,8 @@ use crate::error::Result;
 
 #[derive(Debug)]
 pub struct Notifier {
+    pub threshold: u8,
+
     desktop: Option<desktop::Notifier>,
     kde_connect: Option<kde_connect::Notifier>,
 }
@@ -19,6 +21,7 @@ impl Notifier {
         kde_connect_names: Option<HashSet<String>>,
     ) -> Result<Self> {
         Ok(Self {
+            threshold,
             desktop: Some(desktop::Notifier::new(threshold)),
             kde_connect: match kde_connect_names {
                 None => None,
