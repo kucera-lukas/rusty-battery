@@ -1,4 +1,6 @@
+use std::collections::HashSet;
 use std::fmt::Display;
+use std::hash::Hash;
 use std::result;
 
 pub fn warning_message(threshold: u8) -> String {
@@ -6,6 +8,13 @@ pub fn warning_message(threshold: u8) -> String {
         "Battery percentage reached the {}% threshold, please unplug your charger",
         threshold,
     )
+}
+
+pub fn vec_to_hashset<T>(v: Vec<T>) -> HashSet<T>
+where
+    T: Eq + Hash,
+{
+    v.into_iter().collect()
 }
 
 pub fn warn_on_err<T, E>(result: result::Result<T, E>)

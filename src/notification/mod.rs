@@ -1,6 +1,8 @@
 pub mod desktop;
 pub mod kde_connect;
 
+use std::collections::HashSet;
+
 use crate::common;
 use crate::error::Result;
 
@@ -14,20 +16,16 @@ impl Notifier {
     /// Create a new `Notifier` instance.
     pub fn new(
         threshold: u8,
-        kde_connect_names: Option<Vec<String>>,
+        kde_connect_names: Option<HashSet<String>>,
     ) -> Result<Self> {
-        let desktop = Some(desktop::Notifier::new(threshold));
-        let kde_connect = {
-            if let Some(names) = kde_connect_names {
-                Some(kde_connect::Notifier::new(threshold, &names)?)
-            } else {
-                None
-            }
-        };
-
         let result = Self {
-            desktop,
-            kde_connect,
+            desktop: Some(desktop::Notifier::new(threshold)),
+            kde_connect: match kde_connect_names {
+                None => None,
+                Some(names) => {
+                    Some(kde_connect::Notifier::new(threshold, &names)?)
+                }
+            },
         };
 
         log::info!("{}", result);
