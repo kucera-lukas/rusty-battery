@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use std::process::{Command, Output};
 use std::result;
 
@@ -5,6 +6,13 @@ use crate::common;
 use crate::error;
 
 type Result<T> = result::Result<T, error::KDEConnect>;
+type DeviceResult<T> = result::Result<T, error::KDEConnectDevice>;
+
+#[derive(Clone, Debug)]
+pub struct Device {
+    id: String,
+    name: String,
+}
 
 #[derive(Debug)]
 pub struct Notifier {
@@ -13,11 +21,26 @@ pub struct Notifier {
 }
 
 impl Notifier {
-    pub fn new(threshold: u8) -> Result<Self> {
-        Ok(Self {
+    pub fn new(threshold: u8, device_names: &HashSet<String>) -> Result<Self> {
+        log::debug!("creating KDE Connect notifier...");
+
+        let mut devices = device_map()?;
+
+        let result = Self {
             threshold,
-            devices: device_vec()?,
-        })
+            devices: if device_names.is_empty() {
+                devices.into_values().collect()
+            } else {
+                device_names
+                    .iter()
+                    .map(|name| find_device(&mut devices, name))
+                    .collect::<DeviceResult<Vec<Device>>>()?
+            },
+        };
+
+        log::debug!("{}", result);
+
+        Ok(result)
     }
 
     pub fn ping(&self) -> Result<()> {
@@ -31,18 +54,12 @@ impl Notifier {
     }
 }
 
-#[derive(Debug)]
-pub struct Device {
-    id: String,
-    name: String,
-}
-
 pub fn print_devices() -> Result<()> {
-    common::print_slice(&device_vec()?);
+    common::print_slice(&device_map()?.into_values().collect::<Vec<Device>>());
     Ok(())
 }
 
-fn device_vec() -> Result<Vec<Device>> {
+fn device_map() -> Result<HashMap<String, Device>> {
     String::from_utf8_lossy(
         execute(&["--list-devices", "--id-name-only"])?
             .stdout
@@ -51,11 +68,20 @@ fn device_vec() -> Result<Vec<Device>> {
     .lines()
     .map(|line| {
         let mut data = line.split_whitespace().map(ToOwned::to_owned);
-        let id = data.next().ok_or(error::KDEConnectDevice::ID)?;
-        let name = data.next().ok_or(error::KDEConnectDevice::Name)?;
-        Ok(Device { id, name })
+        let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
+        let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
+        Ok((name.clone(), Device { id, name }))
     })
     .collect()
+}
+
+fn find_device(
+    devices: &mut HashMap<String, Device>,
+    name: &str,
+) -> DeviceResult<Device> {
+    devices
+        .remove(name)
+        .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })
 }
 
 fn ping(id: &str, message: &str) -> Result<()> {
@@ -98,7 +124,7 @@ mod std_fmt_impls {
 
             write!(
                 f,
-                "KDENotifier: threshold = {}, devices = [{}]",
+                "KDE Connect Notifier: threshold = {}, devices = [{}]",
                 self.threshold, devices
             )
         }
