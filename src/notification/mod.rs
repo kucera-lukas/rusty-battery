@@ -18,7 +18,7 @@ impl Notifier {
         threshold: u8,
         kde_connect_names: Option<HashSet<String>>,
     ) -> Result<Self> {
-        let result = Self {
+        Ok(Self {
             desktop: Some(desktop::Notifier::new(threshold)),
             kde_connect: match kde_connect_names {
                 None => None,
@@ -26,11 +26,7 @@ impl Notifier {
                     Some(kde_connect::Notifier::new(threshold, &names)?)
                 }
             },
-        };
-
-        log::info!("{}", result);
-
-        Ok(result)
+        })
     }
 
     /// Send notification on every platform.
@@ -42,7 +38,7 @@ impl Notifier {
             common::warn_on_err(kde_connect.ping());
         }
 
-        log::info!("all notifications sent");
+        log::info!("Notifier: all notifications have been sent");
     }
 }
 

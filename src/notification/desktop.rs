@@ -22,10 +22,17 @@ impl Notifier {
         }
     }
 
+    /// Show a desktop notification alerting the user that the battery threshold has been reached.
+    ///
+    /// If this is the first time this function is called a completely new notification is created
+    /// and cached.
+    ///
+    /// If this function has previously been used there is no need to create a new `Notification` as
+    /// we can just show the previously created one via it's `update` method.
+    ///
+    /// Return a reference to the current `NotificationHandle`.   
     pub fn show(&mut self) -> Result<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
-            // No need to create new `Notification` as we can just show
-            // the previously created one via it's `update` method.
             handle.update();
 
             log::debug!("cached desktop notification shown");
@@ -37,6 +44,7 @@ impl Notifier {
         Ok(self.handle.as_ref().expect("cached notification missing"))
     }
 
+    /// Create a new desktop notification based on the battery threshold of the current instance.
     fn notification(&self) -> Notification {
         create_notification(
             "Charge limit warning",
@@ -45,6 +53,7 @@ impl Notifier {
     }
 }
 
+/// Create a new desktop notification with the given summary and body.
 fn create_notification(summary: &str, body: &str) -> Notification {
     Notification::new()
         .appname("rusty-battery")

@@ -21,6 +21,7 @@ pub struct Notifier {
 }
 
 impl Notifier {
+    /// Create a new `Notifier` instance.
     pub fn new(threshold: u8, device_names: &HashSet<String>) -> Result<Self> {
         log::debug!("creating KDE Connect notifier...");
 
@@ -38,11 +39,13 @@ impl Notifier {
             },
         };
 
-        log::debug!("{}", result);
+        log::info!("{}", result);
 
         Ok(result)
     }
 
+    /// Ping all saved `Device` instances letting them know that the battery charge threshold has
+    /// been reached.
     pub fn ping(&self) -> Result<()> {
         self.devices.iter().try_for_each(|device| {
             ping(&device.id, &common::warning_message(self.threshold))
@@ -54,11 +57,15 @@ impl Notifier {
     }
 }
 
+/// Print all available `Device` instances formatted in a nice and readable way.
+///
+/// Acts as an high level API for the CLI `KDEConnectDevices` subcommand.
 pub fn print_devices() -> Result<()> {
     common::print_slice(&device_map()?.into_values().collect::<Vec<Device>>());
     Ok(())
 }
 
+/// Return a mapping between name and the corresponding `Device` instance.
 fn device_map() -> Result<HashMap<String, Device>> {
     String::from_utf8_lossy(
         execute(&["--list-devices", "--id-name-only"])?
@@ -75,6 +82,7 @@ fn device_map() -> Result<HashMap<String, Device>> {
     .collect()
 }
 
+/// Return `Device` from the given `HashMap` if there is a mapping to it via the given name.
 fn find_device(
     devices: &mut HashMap<String, Device>,
     name: &str,
@@ -84,12 +92,14 @@ fn find_device(
         .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })
 }
 
+/// Ping KDE Connect device with the given `id` via the `kdeconnect-cli` command.
 fn ping(id: &str, message: &str) -> Result<()> {
     execute(&["--device", id, "--ping-msg", message])?;
     log::debug!("pinged {}", id);
     Ok(())
 }
 
+/// Execute `kdeconnect-cli` command with the given arguments and return its output.
 fn execute(args: &[&str]) -> Result<Output> {
     let output = Command::new("kdeconnect-cli").args(args).output()?;
 

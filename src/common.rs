@@ -3,6 +3,9 @@ use std::fmt::Display;
 use std::hash::Hash;
 use std::result;
 
+use cached::proc_macro::cached;
+
+#[cached]
 pub fn warning_message(threshold: u8) -> String {
     format!(
         "Battery percentage reached the {}% threshold, please unplug your charger",
