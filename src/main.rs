@@ -41,8 +41,14 @@ fn run_app() -> error::Result<()> {
         cli::Command::Notify {
             threshold,
             model,
+            refresh_secs,
             kde_connect_names,
-        } => notify(threshold, model.as_deref(), kde_connect_names)?,
+        } => notify(
+            threshold,
+            model.as_deref(),
+            refresh_secs,
+            kde_connect_names,
+        )?,
         cli::Command::Batteries => batteries()?,
         cli::Command::KDEConnectDevices => kde_connect_devices()?,
     }
@@ -53,6 +59,7 @@ fn run_app() -> error::Result<()> {
 fn notify(
     threshold: u8,
     model: Option<&str>,
+    refresh_secs: u64,
     kde_connect_names: Option<Vec<String>>,
 ) -> error::Result<()> {
     let mut battery_device = battery::Device::try_from(model.as_deref())?;
@@ -61,7 +68,7 @@ fn notify(
         kde_connect_names.map(common::vec_to_hashset),
     )?;
 
-    event::loop_(threshold, &mut battery_device, &mut notifier)?;
+    event::loop_(&mut battery_device, &mut notifier, refresh_secs)?;
 
     Ok(())
 }
