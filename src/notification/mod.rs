@@ -1,51 +1,66 @@
 pub mod desktop;
 pub mod kde_connect;
 
-use std::convert::TryFrom;
+use std::collections::HashSet;
 
 use crate::common;
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 #[derive(Debug)]
 pub struct Notifier {
-    desktop: desktop::Notifier,
-    kde_connect: kde_connect::Notifier,
+    desktop: Option<desktop::Notifier>,
+    kde_connect: Option<kde_connect::Notifier>,
 }
 
 impl Notifier {
     /// Create a new `Notifier` instance.
-    pub fn new(threshold: u8) -> Result<Self> {
-        Ok(Self {
-            desktop: desktop::Notifier::new(threshold),
-            kde_connect: kde_connect::Notifier::new(threshold)?,
-        })
+    pub fn new(
+        threshold: u8,
+        kde_connect_names: Option<HashSet<String>>,
+    ) -> Result<Self> {
+        let result = Self {
+            desktop: Some(desktop::Notifier::new(threshold)),
+            kde_connect: match kde_connect_names {
+                None => None,
+                Some(names) => {
+                    Some(kde_connect::Notifier::new(threshold, &names)?)
+                }
+            },
+        };
+
+        log::info!("{}", result);
+
+        Ok(result)
     }
 
     /// Send notification on every platform.
     pub fn notify(&mut self) {
-        common::warn_on_err(self.desktop.show());
-        common::warn_on_err(self.kde_connect.ping());
+        if let Some(desktop) = &mut self.desktop {
+            common::warn_on_err(desktop.show());
+        }
+        if let Some(kde_connect) = &self.kde_connect {
+            common::warn_on_err(kde_connect.ping());
+        }
 
         log::info!("all notifications sent");
-    }
-}
-
-impl TryFrom<u8> for Notifier {
-    type Error = Error;
-
-    fn try_from(value: u8) -> Result<Self> {
-        Self::new(value)
     }
 }
 
 mod std_fmt_impls {
     use std::fmt;
 
+    use crate::common;
+
     use super::Notifier;
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "desktop: {}", self.desktop)
+            write!(
+                f,
+                "Notifier: desktop = {}, KDE Connect = {}",
+                common::format_option(&self.desktop),
+                common::format_option(&self.kde_connect),
+            )
         }
     }
 }

@@ -29,15 +29,12 @@ impl Notifier {
             handle.update();
 
             log::debug!("cached desktop notification shown");
-
-            Ok(self.handle.as_ref().expect("cached notification missing"))
         } else {
             self.handle = Some(self.notification().show()?);
 
             log::debug!("desktop notification shown and cached");
-
-            Ok(self.handle.as_ref().expect("cached notification missing"))
         }
+        Ok(self.handle.as_ref().expect("cached notification missing"))
     }
 
     fn notification(&self) -> Notification {

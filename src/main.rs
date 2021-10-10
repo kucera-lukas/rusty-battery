@@ -38,9 +38,11 @@ fn run_app() -> error::Result<()> {
     logger::init(opts.verbose);
 
     match opts.cmd {
-        cli::Command::Notify { threshold, model } => {
-            notify(threshold, model.as_deref())?;
-        }
+        cli::Command::Notify {
+            threshold,
+            model,
+            kde_connect_names,
+        } => notify(threshold, model.as_deref(), kde_connect_names)?,
         cli::Command::Batteries => batteries()?,
         cli::Command::KDEConnectDevices => kde_connect_devices()?,
     }
@@ -48,9 +50,17 @@ fn run_app() -> error::Result<()> {
     Ok(())
 }
 
-fn notify(threshold: u8, model: Option<&str>) -> error::Result<()> {
+fn notify(
+    threshold: u8,
+    model: Option<&str>,
+    kde_connect_names: Option<Vec<String>>,
+) -> error::Result<()> {
     let mut battery_device = battery::Device::try_from(model.as_deref())?;
-    let mut notifier = notification::Notifier::try_from(threshold)?;
+
+    let mut notifier = notification::Notifier::new(
+        threshold,
+        kde_connect_names.map(common::vec_to_hashset),
+    )?;
 
     event::loop_(threshold, &mut battery_device, &mut notifier)?;
 
