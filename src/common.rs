@@ -13,7 +13,7 @@ pub fn warning_message(threshold: u8) -> String {
     )
 }
 
-pub fn vec_to_hashset<T>(v: Vec<T>) -> HashSet<T>
+pub fn vec_to_set<T>(v: Vec<T>) -> HashSet<T>
 where
     T: Eq + Hash,
 {
@@ -50,6 +50,10 @@ pub fn slice_to_string(slice: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::iter::FromIterator;
+
+    use crate::error;
+
     use super::*;
 
     #[test]
@@ -62,5 +66,80 @@ mod tests {
             "Battery percentage reached the {}% threshold, please unplug your charger",
             threshold,
         ));
+    }
+
+    #[test]
+    fn test_vec_to_set() {
+        let v = vec![1, 2, 3];
+
+        let result = vec_to_set(v);
+
+        assert_eq!(HashSet::from_iter([1, 2, 3]), result)
+    }
+
+    #[test]
+    fn test_vec_to_set_empty() {
+        let v = vec![];
+
+        let result: HashSet<u8> = vec_to_set(v);
+
+        assert_eq!(HashSet::with_capacity(0), result)
+    }
+
+    #[test]
+    fn test_warn_on_err_ok() {
+        let r: Result<(), error::Error> = Ok(());
+
+        let result = warn_on_err(r);
+
+        assert_eq!(Some(()), result);
+    }
+
+    #[test]
+    fn test_warn_on_err_err() {
+        let r: Result<(), error::Error> =
+            Err(error::Error::Battery(error::Battery::NotFound {
+                model: error::Model(Some("test".into())),
+            }));
+
+        let result = warn_on_err(r);
+
+        assert_eq!(None, result);
+    }
+
+    #[test]
+    fn test_format_option_none() {
+        let option: Option<&str> = None;
+
+        let result = format_option(&option);
+
+        assert_eq!("None", result);
+    }
+
+    #[test]
+    fn test_format_option_some() {
+        let option: Option<&str> = Some("123");
+
+        let result = format_option(&option);
+
+        assert_eq!("123", result);
+    }
+
+    #[test]
+    fn test_slice_to_string() {
+        let slice = [240, 159, 146, 150];
+
+        let result = slice_to_string(&slice);
+
+        assert_eq!("💖", result);
+    }
+
+    #[test]
+    fn test_slice_to_string_empty() {
+        let slice = [];
+
+        let result = slice_to_string(&slice);
+
+        assert_eq!("", result);
     }
 }
