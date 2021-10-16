@@ -13,3 +13,10 @@ repos:
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: trailing-whitespace
+
+  - repo: https://github.com/kucera-lukas/rusty-battery
+    rev: 148b5f3a95e77c1dba74d30d7bcd2fce57e0ef53
+    hooks:
+      - id: cargo-fmt
+      - id: cargo-check
+      - id: clippy

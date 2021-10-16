@@ -16,11 +16,12 @@
   args: ["--verbose", "--all-targets"]
   pass_filenames: false
 
-- id: clippy-lint
+- id: clippy
   name: Clippy lint
   description: Lint source code via Clippy
   entry: cargo clippy
   language: system
+  types: [rust]
   args: [
       "--all-targets",
       "--all-features",
@@ -28,6 +29,4 @@
       "-D",
       "warnings",
   ]
-
-  types: [rust]
   pass_filenames: false
