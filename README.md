@@ -79,17 +79,17 @@ FLAGS:
 
 # Installation
 
-## From `crates.io`
+## From [crates.io](https://crates.io/crates/rusty-batter)
 ``cargo install rust-battery``
 
-## From source
+## From [source](https://github.com/kucera-lukas/rusty-battery)
 
 1. `git clone git@github.com:kucera-lukas/rusty-battery.git`
 2. `cd rusty-battery`
 3. `cargo install --path .`
 
 
-## From release page
+## From [release page](https://github.com/kucera-lukas/rusty-battery/releases)
 
 Download a binary of the
 [latest release](https://github.com/kucera-lukas/rusty-battery/releases/latest)
