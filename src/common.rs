@@ -20,14 +20,11 @@ where
     v.into_iter().collect()
 }
 
-pub fn warn_on_err<T, E>(result: result::Result<T, E>)
+pub fn warn_on_err<T, E>(result: result::Result<T, E>) -> Option<T>
 where
     E: Display,
 {
-    match result {
-        Ok(_) => {}
-        Err(e) => log::warn!("{}", e),
-    }
+    result.map_err(|e| log::warn!("{}", e)).ok()
 }
 
 pub fn print_slice<T>(slice: &[T])
@@ -45,6 +42,10 @@ where
         None => "None".into(),
         Some(value) => format!("{}", value),
     }
+}
+
+pub fn slice_to_string(slice: &[u8]) -> String {
+    String::from_utf8_lossy(slice).to_string()
 }
 
 #[cfg(test)]
