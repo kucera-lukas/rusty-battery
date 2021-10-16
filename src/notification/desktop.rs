@@ -30,7 +30,7 @@ impl Notifier {
     /// If this function has previously been used there is no need to create a new `Notification` as
     /// we can just show the previously created one via it's `update` method.
     ///
-    /// Return a reference to the current `NotificationHandle`.   
+    /// Return a reference to the current `NotificationHandle`.
     pub fn show(&mut self) -> Result<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
             handle.update();

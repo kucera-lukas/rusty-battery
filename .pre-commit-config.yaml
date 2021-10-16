@@ -15,7 +15,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/kucera-lukas/rusty-battery
-    rev: 148b5f3a95e77c1dba74d30d7bcd2fce57e0ef53
+    rev: 62889ddc4203194fa556e88df6dbbd2843eeda1d
     hooks:
       - id: cargo-fmt
       - id: cargo-check
