@@ -76,7 +76,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: bin/rusty-battery
-          asset_name: rusty-battery-${{ env.TARGET }}.zip
+          asset_name: rusty-battery-${{ env.TARGET }}
           asset_content_type: application/zip
 
   publish:
