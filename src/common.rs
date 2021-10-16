@@ -74,7 +74,7 @@ mod tests {
 
         let result = vec_to_set(v);
 
-        assert_eq!(HashSet::from_iter([1, 2, 3]), result)
+        assert_eq!(HashSet::from_iter([1, 2, 3]), result);
     }
 
     #[test]
@@ -83,7 +83,7 @@ mod tests {
 
         let result: HashSet<u8> = vec_to_set(v);
 
-        assert_eq!(HashSet::with_capacity(0), result)
+        assert_eq!(HashSet::with_capacity(0), result);
     }
 
     #[test]
@@ -131,7 +131,7 @@ mod tests {
 
         let result = slice_to_string(&slice);
 
-        assert_eq!("💖", result);
+        assert_eq!("\u{1f496}", result);
     }
 
     #[test]
