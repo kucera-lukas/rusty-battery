@@ -5,44 +5,20 @@ on:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+
 
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+  TARGET: x86_64-unknown-linux-gnu
+
 jobs:
-  release:
-    name: Release / ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Build Changelog
-        id: build_changelog
-        uses: mikepenz/release-changelog-builder-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            ${{ steps.build_changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
-
   build:
-    name: Build binaries / ${{ matrix.os }}
+    name: ${{ matrix.os }} / ${{ matrix.toolchain }}
 
     strategy:
       matrix:
         os: [ ubuntu-latest ]
         toolchain: [ nightly ]
-        target: [ x86_64-unknown-linux-gnu ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -57,19 +33,89 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.toolchain }}
           override: true
-          target: ${{ matrix.target }}
+          target: ${{ env.TARGET }}
 
-      - name: Create bin directory
+      - name: Create Bin Directory
         run: mkdir bin --verbose
 
       - name: Release build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target ${{ matrix.target }} -Z unstable-options --out-dir bin
+          args: --release --target ${{ env.TARGET }} -Z unstable-options --out-dir bin
 
       - name: Arhive binary
         uses: actions/upload-artifact@v1
         with:
-          name: rusty-battery-${{ matrix.target }}
+          name: rusty-battery-${{ env.TARGET }}
           path: bin/rusty-battery
+
+  release:
+    name: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+    needs: [ build ]
+
+    steps:
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ${{ steps.build_changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/rusty-battery
+          asset_name: rusty-battery-${{ env.TARGET }}.zip
+          asset_content_type: application/zip
+
+  publish:
+    name: ${{ matrix.os }} / ${{ matrix.toolchain }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        toolchain: [ stable ]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+    needs: [ build, release ]
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Install minimal ${{ matrix.toolchain }}
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
+      - name: Cargo Publish
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --token ${{ env.CARGO_TOKEN }}

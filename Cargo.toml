@@ -5,7 +5,7 @@ description = "CLI tool to help you care about your device's battery health."
 repository = "https://github.com/kucera-lukas/rusty-battery"
 readme = "README.md"
 license = "MIT"
-keywords = ['cli', "battery-life", "desktop-notifications"]
+keywords = ['cli', "battery-life", "desktop-notification", "kdeconnect"]
 categories = ['command-line-utilities']
 edition = "2018"
 
