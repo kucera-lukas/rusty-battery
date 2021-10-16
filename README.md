@@ -99,7 +99,7 @@ You may need to change the binary's permissions by running
 
 If there are any problems with the pre-compiled binaries, file an issue.
 
-## Usage tips
+# Usage tips
 
 This tool is best used when set up as a background task.
 Here is a guide to set it up via `cron`:
@@ -111,12 +111,12 @@ Here is a guide to set it up via `cron`:
 5. Press `esc` to exit insert mode and then `:wq` to close `vi`
 6. `sudo reboot `
 
-You can check that `rusty-battery` is running via ```ps aux | grep -e rusty-battery```.\
+You can check that `rusty-battery` is running via `ps aux | grep -e rusty-battery`.\
 To kill the `rusty-battery` job use `kill $PID`.
 
 If you want logging add this to the end of the cron job: `-vv >> /var/log/rusty-battery.log 2>&1`,\
 then you can check logs via `sudo tail -f /var/log/rusty-battery.log`.
 
-## OS support
+# OS support
 
 Currently, only linux is supported.
