@@ -10,7 +10,7 @@ CLI tool to help you care about your devices's battery health.
 
 * [notify](#Notify)
 * [batteries](#Batteries)
-* [kde-connect-devices](#KDE Connect device)
+* [kde-connect-devices](#KDE Connect devices)
 
 ## Notify
 
