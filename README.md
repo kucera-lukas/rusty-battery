@@ -10,9 +10,9 @@ CLI tool to help you care about your devices's battery health.
 
 * [notify](#Notify)
 * [batteries](#Batteries)
-* [kde-connect-devices](#KDE Connect devices)
+* [kde-connect-devices](#kde-connect-devices)
 
-## Notify
+## notify
 
 Notify whenever battery percentage exceeds the given threshold.
 
@@ -54,7 +54,7 @@ OPTIONS:
             Whenever the chosen battery device reaches this charge threshold and will be charging, notifications will be
             sent, alerting that the charger should be unplugged. [default: 80]
 
-## Batteries
+## batteries
 
 List all available batteries of the current device
 
@@ -65,7 +65,7 @@ FLAGS:
 
     -v, --verbose    Activates verbose mode
 
-## KDE Connect devices
+## kde-connect-devices
 
 List all available KDE Connect devices
 
