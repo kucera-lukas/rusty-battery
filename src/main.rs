@@ -1,5 +1,4 @@
-//! CLI tool to help you care about your device's battery health.
-
+#![doc = include_str!("../README.md")]
 #![warn(
     clippy::correctness,
     clippy::suspicious,
