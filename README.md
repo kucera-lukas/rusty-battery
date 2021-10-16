@@ -114,8 +114,9 @@ Here is a guide to set it up via `cron`:
 You can check that `rusty-battery` is running via `ps aux | grep -e rusty-battery`.\
 To kill the `rusty-battery` job use `kill $PID`.
 
-If you want logging add this to the end of the cron job: `-vv >> /var/log/rusty-battery.log 2>&1`,\
-then you can check logs via `sudo tail -f /var/log/rusty-battery.log`.
+If you want logging add this to the end of the cron job: `-vv >> /var/log/rusty-battery.log 2>&1`.\
+To check all the logs you can use `more /var/log/rusty-battery.log`.\
+To see the logs live you can use `tail -f /var/log/rusty-battery.log`.
 
 # OS support
 
