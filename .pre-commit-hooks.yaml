@@ -1,6 +1,6 @@
 - id: cargo-fmt
   name: Cargo fmt
-  description: Format source code with cargo ftm
+  description: Format source code with cargo fmt
   entry: cargo fmt
   language: system
   types: [rust]
@@ -9,7 +9,7 @@
 
 - id: cargo-check
   name: Cargo check
-  description: Check source code via cargo-check
+  description: Check source code via cargo check
   entry: cargo check
   language: system
   types: [rust]
@@ -18,7 +18,7 @@
 
 - id: clippy
   name: Clippy lint
-  description: Lint source code via Clippy
+  description: Lint source code via clippy
   entry: cargo clippy
   language: system
   types: [rust]
