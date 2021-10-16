@@ -1,0 +1,33 @@
+- id: cargo-fmt
+  name: Cargo fmt
+  description: Format source code with cargo ftm
+  entry: cargo fmt
+  language: system
+  types: [rust]
+  args: ["--all", "--", "--color", "always", "--check"]
+  pass_filenames: false
+
+- id: cargo-check
+  name: Cargo check
+  description: Check source code via cargo-check
+  entry: cargo check
+  language: system
+  types: [rust]
+  args: ["--verbose", "--all-targets"]
+  pass_filenames: false
+
+- id: clippy-lint
+  name: Clippy lint
+  description: Lint source code via Clippy
+  entry: cargo clippy
+  language: system
+  args: [
+      "--all-targets",
+      "--all-features",
+      "--",
+      "-D",
+      "warnings",
+  ]
+
+  types: [rust]
+  pass_filenames: false
