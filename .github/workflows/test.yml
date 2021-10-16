@@ -50,7 +50,7 @@ jobs:
         with:
           file: ./cobertura.xml
           fail_ci_if_error: true
-          vebose: true
+          verbose: true
 
       - name: Archive code coverage results
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.toolchain == 'stable'}}

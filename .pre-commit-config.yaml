@@ -14,18 +14,9 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
+  - repo: https://github.com/kucera-lukas/rusty-battery
+    rev: 62889ddc4203194fa556e88df6dbbd2843eeda1d
     hooks:
-      - id: fmt
+      - id: cargo-fmt
       - id: cargo-check
-        args: [ '--verbose', '--all-features', ]
       - id: clippy
-        args: [
-                '--verbose',
-                '--all-features',
-                '--all-targets',
-                '--fix',
-                '--allow-dirty',
-                '--allow-staged',
-              ]
