@@ -4,7 +4,6 @@ pub mod kde_connect;
 use std::collections::HashSet;
 
 use crate::common;
-use crate::error::Result;
 
 #[derive(Debug)]
 pub struct Notifier {
@@ -19,17 +18,13 @@ impl Notifier {
     pub fn new(
         threshold: u8,
         kde_connect_names: Option<HashSet<String>>,
-    ) -> Result<Self> {
-        Ok(Self {
+    ) -> Self {
+        Self {
             threshold,
             desktop: Some(desktop::Notifier::new(threshold)),
-            kde_connect: match kde_connect_names {
-                None => None,
-                Some(names) => {
-                    Some(kde_connect::Notifier::new(threshold, &names)?)
-                }
-            },
-        })
+            kde_connect: kde_connect_names
+                .map(|names| kde_connect::Notifier::new(threshold, names)),
+        }
     }
 
     /// Send notification on every platform.
@@ -41,7 +36,7 @@ impl Notifier {
             common::warn_on_err(kde_connect.ping());
         }
 
-        log::info!("Notifier: all notifications have been sent");
+        log::info!("Notifier: all notifications sent");
     }
 }
 
