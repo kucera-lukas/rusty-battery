@@ -156,10 +156,15 @@ fn execute(args: &[&str]) -> Result<String> {
 
     let stderr = common::slice_to_string(output.stderr.as_slice());
     if !stderr.is_empty() {
-        log::warn!("kdeconnect-cli: stderr = {}", stderr);
+        log::warn!("kdeconnect-cli: stderr = {}", &stderr);
     }
 
-    Ok(common::slice_to_string(output.stdout.as_slice()))
+    let stdout = common::slice_to_string(output.stdout.as_slice());
+    if !stdout.is_empty() {
+        log::debug!("kdeconnect-cli: stdout = {}", &stdout);
+    }
+
+    Ok(stdout)
 }
 
 mod std_fmt_impls {
