@@ -12,7 +12,7 @@ env:
   TARGET: x86_64-unknown-linux-gnu
 
 jobs:
-  build:
+  release:
     name: ${{ matrix.os }} / ${{ matrix.toolchain }}
 
     strategy:
@@ -38,37 +38,25 @@ jobs:
       - name: Create Bin Directory
         run: mkdir bin --verbose
 
-      - name: Release build
+      - name: Release Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --target ${{ env.TARGET }} -Z unstable-options --out-dir bin
 
-      - name: Arhive binary
+      - name: Archive Binary
         uses: actions/upload-artifact@v1
         with:
           name: rusty-battery-${{ env.TARGET }}
           path: bin/rusty-battery
 
-  release:
-    name: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
-    needs: [ build ]
-
-    steps:
       - name: Build Changelog
         id: build_changelog
         uses: mikepenz/release-changelog-builder-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create release
+      - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
@@ -101,7 +89,7 @@ jobs:
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
-    needs: [ build, release ]
+    needs: [ release ]
 
     steps:
       - name: Git Checkout
