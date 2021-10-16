@@ -9,9 +9,12 @@ use crate::error;
 type Result<T> = result::Result<T, error::KDEConnect>;
 type DeviceResult<T> = result::Result<T, error::KDEConnectDevice>;
 
+/// KDE Connect device representation.
 #[derive(Clone, Debug)]
 pub struct Device {
+    /// ID of the device
     id: String,
+    /// Name of the device
     name: String,
 }
 
@@ -26,9 +29,14 @@ impl TryFrom<&str> for Device {
     }
 }
 
+/// KDE Connect notifier.
 #[derive(Debug)]
 pub struct Notifier {
+    /// Charge threshold used to create warning message.
     threshold: u8,
+    /// Names of KDE Connect devices which should be pinged.
+    ///
+    /// If this value is `None` every available KDE Connect device will pinged.
     device_names: Option<HashSet<String>>,
 }
 
@@ -45,8 +53,7 @@ impl Notifier {
         }
     }
 
-    /// Ping all saved `Device` instances letting them know that the battery charge threshold has
-    /// been reached.
+    /// Ping all available `Device` instances.
     pub fn ping(&self) -> Result<()> {
         self.find_available()?.iter().try_for_each(|device| {
             ping(device, &common::warning_message(self.threshold))
@@ -57,6 +64,9 @@ impl Notifier {
         Ok(())
     }
 
+    /// Return all `Device` instances which are currently available.
+    ///
+    /// If no `device_names` were specified at the creation, all available devices will be returned.
     fn find_available(&self) -> Result<Vec<Device>> {
         let mut devices = available_devices_map()?;
 
@@ -82,15 +92,23 @@ pub fn print_devices() -> Result<()> {
     Ok(())
 }
 
+/// Return a mapping between name and its corresponding `Device` instance.
+///
+/// `Devices` are collected from the `list-devices` `kde-connect-cli` argument.
 fn all_devices_map() -> Result<HashMap<String, Device>> {
     device_map(&list_devices()?)
 }
 
+/// Return a mapping between name and its corresponding `Device` instance.
+///
+/// `Devices` are collected from the `list-available` `kde-connect-cli` argument.
 fn available_devices_map() -> Result<HashMap<String, Device>> {
     device_map(&list_available()?)
 }
 
 /// Return a mapping between name and the corresponding `Device` instance.
+///
+/// Data is parsed from the given string.
 fn device_map(list: &str) -> Result<HashMap<String, Device>> {
     list.lines()
         .map(|line| {
@@ -110,22 +128,27 @@ fn find_device(
         .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })
 }
 
-/// Ping KDE Connect device with the given `id` via the `kdeconnect-cli` command.
+/// Ping the given `Device` via the `kdeconnect-cli` `ping-msg` command.
 fn ping(device: &Device, message: &str) -> Result<()> {
     execute(&["--device", &device.id, "--ping-msg", message])?;
     log::debug!("pinged - {}", &device);
     Ok(())
 }
 
+/// Return `kdeconnect-cli` stdout listing all devices via the `list-devices` argument.
 fn list_devices() -> Result<String> {
     execute(&["--list-devices", "--id-name-only"])
 }
 
+/// Return `kdeconnect-cli` stdout listing all available devices via the `list-available` argument.
 fn list_available() -> Result<String> {
     execute(&["--list-available", "--id-name-only"])
 }
 
-/// Execute `kdeconnect-cli` command with the given arguments and return its output.
+/// Execute `kdeconnect-cli` command with the given arguments.
+///
+/// Warn if any data is passed into stderr.
+/// Return stdout data.
 fn execute(args: &[&str]) -> Result<String> {
     let output = Command::new("kdeconnect-cli").args(args).output()?;
 
