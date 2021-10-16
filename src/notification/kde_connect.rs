@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
-use std::process::{Command, Output};
+use std::convert::TryFrom;
+use std::process::Command;
 use std::result;
 
 use crate::common;
@@ -8,52 +9,76 @@ use crate::error;
 type Result<T> = result::Result<T, error::KDEConnect>;
 type DeviceResult<T> = result::Result<T, error::KDEConnectDevice>;
 
+/// KDE Connect device representation.
 #[derive(Clone, Debug)]
 pub struct Device {
+    /// ID of the device
     id: String,
+    /// Name of the device
     name: String,
 }
 
+impl TryFrom<&str> for Device {
+    type Error = error::KDEConnectDevice;
+
+    fn try_from(value: &str) -> result::Result<Self, Self::Error> {
+        let mut data = value.split_whitespace().map(ToOwned::to_owned);
+        let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
+        let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
+        Ok(Self { id, name })
+    }
+}
+
+/// KDE Connect notifier.
 #[derive(Debug)]
 pub struct Notifier {
+    /// Charge threshold used to create warning message.
     threshold: u8,
-    devices: Vec<Device>,
+    /// Names of KDE Connect devices which should be pinged.
+    ///
+    /// If this value is `None` every available KDE Connect device will pinged.
+    device_names: Option<HashSet<String>>,
 }
 
 impl Notifier {
     /// Create a new `Notifier` instance.
-    pub fn new(threshold: u8, device_names: &HashSet<String>) -> Result<Self> {
-        log::debug!("creating KDE Connect notifier...");
-
-        let mut devices = device_map()?;
-
-        let result = Self {
+    pub fn new(threshold: u8, device_names: HashSet<String>) -> Self {
+        Self {
             threshold,
-            devices: if device_names.is_empty() {
-                devices.into_values().collect()
+            device_names: if device_names.is_empty() {
+                None
             } else {
-                device_names
-                    .iter()
-                    .map(|name| find_device(&mut devices, name))
-                    .collect::<DeviceResult<Vec<Device>>>()?
+                Some(device_names)
             },
-        };
-
-        log::info!("{}", result);
-
-        Ok(result)
+        }
     }
 
-    /// Ping all saved `Device` instances letting them know that the battery charge threshold has
-    /// been reached.
+    /// Ping all available `Device` instances.
     pub fn ping(&self) -> Result<()> {
-        self.devices.iter().try_for_each(|device| {
-            ping(&device.id, &common::warning_message(self.threshold))
+        self.find_available()?.iter().try_for_each(|device| {
+            ping(device, &common::warning_message(self.threshold))
         })?;
 
-        log::debug!("KDE Connect devices pinged");
+        log::debug!("available KDE Connect devices pinged");
 
         Ok(())
+    }
+
+    /// Return all `Device` instances which are currently available.
+    ///
+    /// If no `device_names` were specified at the creation, all available devices will be returned.
+    fn find_available(&self) -> Result<Vec<Device>> {
+        let mut devices = available_devices_map()?;
+
+        Ok(match &self.device_names {
+            None => devices.into_values().collect(),
+            Some(names) => names
+                .iter()
+                .filter_map(|name| {
+                    common::warn_on_err(find_device(&mut devices, name))
+                })
+                .collect(),
+        })
     }
 }
 
@@ -61,25 +86,36 @@ impl Notifier {
 ///
 /// Acts as an high level API for the CLI `KDEConnectDevices` subcommand.
 pub fn print_devices() -> Result<()> {
-    common::print_slice(&device_map()?.into_values().collect::<Vec<Device>>());
+    common::print_slice(
+        &all_devices_map()?.into_values().collect::<Vec<Device>>(),
+    );
     Ok(())
 }
 
+/// Return a mapping between name and its corresponding `Device` instance.
+///
+/// `Devices` are collected from the `list-devices` `kde-connect-cli` argument.
+fn all_devices_map() -> Result<HashMap<String, Device>> {
+    device_map(&list_devices()?)
+}
+
+/// Return a mapping between name and its corresponding `Device` instance.
+///
+/// `Devices` are collected from the `list-available` `kde-connect-cli` argument.
+fn available_devices_map() -> Result<HashMap<String, Device>> {
+    device_map(&list_available()?)
+}
+
 /// Return a mapping between name and the corresponding `Device` instance.
-fn device_map() -> Result<HashMap<String, Device>> {
-    String::from_utf8_lossy(
-        execute(&["--list-devices", "--id-name-only"])?
-            .stdout
-            .as_slice(),
-    )
-    .lines()
-    .map(|line| {
-        let mut data = line.split_whitespace().map(ToOwned::to_owned);
-        let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
-        let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
-        Ok((name.clone(), Device { id, name }))
-    })
-    .collect()
+///
+/// Data is parsed from the given string.
+fn device_map(list: &str) -> Result<HashMap<String, Device>> {
+    list.lines()
+        .map(|line| {
+            let device = Device::try_from(line)?;
+            Ok((device.name.clone(), device))
+        })
+        .collect()
 }
 
 /// Return `Device` from the given `HashMap` if there is a mapping to it via the given name.
@@ -92,23 +128,47 @@ fn find_device(
         .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })
 }
 
-/// Ping KDE Connect device with the given `id` via the `kdeconnect-cli` command.
-fn ping(id: &str, message: &str) -> Result<()> {
-    execute(&["--device", id, "--ping-msg", message])?;
-    log::debug!("pinged {}", id);
+/// Ping the given `Device` via the `kdeconnect-cli` `ping-msg` command.
+fn ping(device: &Device, message: &str) -> Result<()> {
+    execute(&["--device", &device.id, "--ping-msg", message])?;
+    log::debug!("pinged - {}", &device);
     Ok(())
 }
 
-/// Execute `kdeconnect-cli` command with the given arguments and return its output.
-fn execute(args: &[&str]) -> Result<Output> {
+/// Return `kdeconnect-cli` stdout listing all devices via the `list-devices` argument.
+fn list_devices() -> Result<String> {
+    execute(&["--list-devices", "--id-name-only"])
+}
+
+/// Return `kdeconnect-cli` stdout listing all available devices via the `list-available` argument.
+fn list_available() -> Result<String> {
+    execute(&["--list-available", "--id-name-only"])
+}
+
+/// Execute `kdeconnect-cli` command with the given arguments.
+///
+/// Warn if any data is passed into stderr.
+/// Return stdout data.
+fn execute(args: &[&str]) -> Result<String> {
     let output = Command::new("kdeconnect-cli").args(args).output()?;
 
-    log::debug!("kdeconnect-cli: args = {:?}, output = {:?}", args, &output);
+    log::debug!("kdeconnect-cli: args = {:?}", args);
 
-    Ok(output)
+    let stderr = common::slice_to_string(output.stderr.as_slice());
+    if !stderr.is_empty() {
+        log::warn!("kdeconnect-cli: stderr = {}", &stderr);
+    }
+
+    let stdout = common::slice_to_string(output.stdout.as_slice());
+    if !stdout.is_empty() {
+        log::debug!("kdeconnect-cli: stdout = {}", &stdout);
+    }
+
+    Ok(stdout)
 }
 
 mod std_fmt_impls {
+    use std::borrow::Borrow;
     use std::fmt;
 
     use super::{Device, Notifier};
@@ -118,24 +178,31 @@ mod std_fmt_impls {
             write!(
                 f,
                 "KDE Connect device: name = {}, id = {}",
-                self.name, self.id
+                self.name, self.id,
             )
         }
     }
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let devices = self
-                .devices
-                .iter()
-                .map(|device| format!("{}", device))
-                .collect::<Vec<String>>()
-                .join(" ");
+            let device_names = self.device_names.as_ref().map_or_else(
+                || "All".into(),
+                |names| {
+                    format!(
+                        "[{}]",
+                        names
+                            .iter()
+                            .map(Borrow::borrow)
+                            .collect::<Vec<&str>>()
+                            .join(", ")
+                    )
+                },
+            );
 
             write!(
                 f,
-                "KDE Connect Notifier: threshold = {}, devices = [{}]",
-                self.threshold, devices
+                "KDE Connect Notifier: threshold = {}, device_names = {}",
+                self.threshold, device_names,
             )
         }
     }

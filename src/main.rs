@@ -65,8 +65,8 @@ fn notify(
     let mut battery_device = battery::Device::try_from(model.as_deref())?;
     let mut notifier = notification::Notifier::new(
         threshold,
-        kde_connect_names.map(common::vec_to_hashset),
-    )?;
+        kde_connect_names.map(common::vec_to_set),
+    );
 
     event::loop_(&mut battery_device, &mut notifier, refresh_secs)?;
 
