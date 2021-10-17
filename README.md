@@ -6,10 +6,19 @@
 
 CLI tool to help you care about your devices's battery health.
 
+# Why should you use `rusty-battery`?
+
+If you aren't able to set start/stop charge threshold
+(for example via [TLP](https://linrunner.de/tlp/)) but would still like to
+make sure that your battery won't exceed your preferred threshold.
+`rusty-battery` can let you know when your battery reached the threshold by
+showing a desktop notification and optionally pinging your
+[KDE Connect](https://kdeconnect.kde.org/) devices.
+
 # Features
 
-* [notify](#Notify)
-* [batteries](#Batteries)
+* [notify](#notify)
+* [batteries](#batteries)
 * [kde-connect-devices](#kde-connect-devices)
 
 ## notify
@@ -79,17 +88,17 @@ FLAGS:
 
 # Installation
 
-## From `crates.io`
+## From [crates.io](https://crates.io/crates/rusty-battery)
 ``cargo install rust-battery``
 
-## From source
+## From [source](https://github.com/kucera-lukas/rusty-battery)
 
 1. `git clone git@github.com:kucera-lukas/rusty-battery.git`
 2. `cd rusty-battery`
 3. `cargo install --path .`
 
 
-## From release page
+## From [release page](https://github.com/kucera-lukas/rusty-battery/releases)
 
 Download a binary of the
 [latest release](https://github.com/kucera-lukas/rusty-battery/releases/latest)
@@ -99,6 +108,25 @@ You may need to change the binary's permissions by running
 
 If there are any problems with the pre-compiled binaries, file an issue.
 
-## OS support
+# Usage tips
+
+This tool is best used when set up as a background task.
+Here is a guide to set it up via `cron`:
+
+1. Find your `rusty-battery` executable via `which rusty-battery` and get absolute path to it
+2. `sudo crontab -e`
+3. Press `i` to enter `vi` insert mode
+4. Paste in `@reboot path/to/rusty-battery notify [OPTIONS]`
+5. Press `esc` to exit insert mode and then `:wq` to close `vi`
+6. `sudo reboot `
+
+You can check that `rusty-battery` is running via `ps aux | grep -e rusty-battery`.\
+To kill the `rusty-battery` job use `kill $PID`.
+
+If you want logging add this to the end of the cron job: `-vv >> /var/log/rusty-battery.log 2>&1`.\
+To check all the logs you can use `more /var/log/rusty-battery.log`.\
+To see the logs live you can use `tail -f /var/log/rusty-battery.log`.
+
+# OS support
 
 Currently, only linux is supported.
