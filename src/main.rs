@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![doc(
-    html_favicon_url = "https://github.com/kucera-lukas/rusty-battery/blob/main/static/favicon.ico",
-    html_logo_url = "https://github.com/kucera-lukas/rusty-battery/blob/main/static/favicon.ico"
+    html_favicon_url = "https://raw.githubusercontent.com/kucera-lukas/rusty-battery/feature/usage-tips/static/favicon.ico",
+    html_logo_url = "https://raw.githubusercontent.com/kucera-lukas/rusty-battery/feature/usage-tips/static/logo.png"
 )]
 #![warn(
     clippy::correctness,
