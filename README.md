@@ -6,10 +6,19 @@
 
 CLI tool to help you care about your devices's battery health.
 
+# Why should you use `rusty-battery`?
+
+If you aren't able to set start/stop charge threshold
+(for example via [TLP](https://linrunner.de/tlp/)) but would still like to
+make sure that your battery won't exceed your preferred threshold.
+`rusty-battery` can let you know when your battery reached the threshold by
+showing a desktop notification and optionally pinging your
+[KDE Connect](https://kdeconnect.kde.org/) devices.
+
 # Features
 
-* [notify](#Notify)
-* [batteries](#Batteries)
+* [notify](#notify)
+* [batteries](#batteries)
 * [kde-connect-devices](#kde-connect-devices)
 
 ## notify
@@ -79,7 +88,7 @@ FLAGS:
 
 # Installation
 
-## From [crates.io](https://crates.io/crates/rusty-batter)
+## From [crates.io](https://crates.io/crates/rusty-battery)
 ``cargo install rust-battery``
 
 ## From [source](https://github.com/kucera-lukas/rusty-battery)
