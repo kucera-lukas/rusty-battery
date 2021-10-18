@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v2.3.5
 
       - name: Install minimal stable with clippy
         uses: actions-rs/toolchain@v1
