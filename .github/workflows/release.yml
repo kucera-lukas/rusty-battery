@@ -45,7 +45,7 @@ jobs:
           args: --release --target ${{ env.TARGET }} -Z unstable-options --out-dir bin
 
       - name: Archive Binary
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.4
         with:
           name: rusty-battery-${{ env.TARGET }}
           path: bin/rusty-battery
