@@ -111,21 +111,28 @@ If there are any problems with the pre-compiled binaries, file an issue.
 # Usage tips
 
 This tool is best used when set up as a background task.
-Here is a guide to set it up via `cron`:
 
-1. Find your `rusty-battery` executable via `which rusty-battery` and get absolute path to it
-2. `sudo crontab -e`
-3. Press `i` to enter `vi` insert mode
-4. Paste in `@reboot path/to/rusty-battery notify [OPTIONS]`
-5. Press `esc` to exit insert mode and then `:wq` to close `vi`
-6. `sudo reboot `
+### Setup with `cron`
 
-You can check that `rusty-battery` is running via `ps aux | grep -e rusty-battery`.\
-To kill the `rusty-battery` job use `kill $PID`.
+1. open terminal
+2. `crontab -e` - this should open a text editor
+3. paste in `@reboot rusty-battery notify [YOUR OPTIONS]`
+4. save and exit the text editor, you should see `crontab: installing new crontab` in your terminal
+5. `reboot`
 
-If you want logging add this to the end of the cron job: `-vv >> /var/log/rusty-battery.log 2>&1`.\
-To check all the logs you can use `more /var/log/rusty-battery.log`.\
-To see the logs live you can use `tail -f /var/log/rusty-battery.log`.
+### Logging
+1. choose the log verbosity via the `-v` or `--verbose` flag
+2. append it to the `rusty-battery` command
+3. redirect output via `>> /path/to/log/file 2>&1`
+4. check all logs via `more /path/to/log/file`
+
+- for live logs use `tail`: `tail -f /path/to/log/file`
+- `2>&1` [explanation](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean)
+
+### Debugging
+- [here is a useful thread](https://askubuntu.com/questions/23009/why-crontab-scripts-are-not-working) for crontab debugging
+- to check that `rusty-battery` is running you can use `ps aux | grep -e rusty-battery`
+- to kill the job you can use `kill $PID` (`$PID` can be found via the previous command)
 
 # OS support
 
