@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 use std::fmt::Display;
 use std::hash::Hash;
-use std::result;
+use std::process::{Command, Output};
+use std::{io, result};
 
 use cached::proc_macro::cached;
 
@@ -46,6 +47,12 @@ where
 
 pub fn slice_to_string(slice: &[u8]) -> String {
     String::from_utf8_lossy(slice).to_string()
+}
+
+pub fn command(args: &str) -> Result<Output, io::Error> {
+    log::debug!("sh -c \"{}\"", args);
+
+    Command::new("sh").arg("-c").arg(args).output()
 }
 
 #[cfg(test)]
