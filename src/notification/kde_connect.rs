@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
-use std::process::Command;
 use std::result;
 
 use crate::common;
@@ -130,7 +129,13 @@ fn find_device(
 
 /// Ping the given `Device` via the `kdeconnect-cli` `ping-msg` command.
 fn ping(device: &Device, message: &str) -> Result<()> {
-    execute(&["--device", &device.id, "--ping-msg", message])?;
+    execute(&[
+        "--device",
+        &device.id,
+        "--ping-msg",
+        // needs to be wrapped in quotes otherwise only the first word of the message  would be sent
+        &format!("\"{}\"", message),
+    ])?;
     log::debug!("pinged - {}", &device);
     Ok(())
 }
@@ -150,18 +155,17 @@ fn list_available() -> Result<String> {
 /// Warn if any data is passed into stderr.
 /// Return stdout data.
 fn execute(args: &[&str]) -> Result<String> {
-    let output = Command::new("kdeconnect-cli").args(args).output()?;
-
-    log::debug!("kdeconnect-cli: args = {:?}", args);
+    let output =
+        common::command(&format!("{} {}", "kdeconnect-cli", args.join(" ")))?;
 
     let stderr = common::slice_to_string(output.stderr.as_slice());
     if !stderr.is_empty() {
-        log::warn!("kdeconnect-cli: stderr = {}", &stderr);
+        log::warn!("kdeconnect-cli: stderr = {}", &stderr.trim());
     }
 
     let stdout = common::slice_to_string(output.stdout.as_slice());
     if !stdout.is_empty() {
-        log::debug!("kdeconnect-cli: stdout = {}", &stdout);
+        log::debug!("kdeconnect-cli: stdout = {}", &stdout.trim());
     }
 
     Ok(stdout)
