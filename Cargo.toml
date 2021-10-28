@@ -1,6 +1,6 @@
 [package]
 name = "rusty-battery"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2018"
 description = "CLI tool to help you care about your device's battery health."
 documentation = "https://kucera-lukas.github.io/rusty-battery/"
