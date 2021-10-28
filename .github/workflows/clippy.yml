@@ -2,6 +2,10 @@ name: Clippy Check
 
 on:
   pull_request:
+    paths:
+      - "**.rs"
+      - Cargo.toml
+      - Cargo.lock
 
 jobs:
   clippy:
