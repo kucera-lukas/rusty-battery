@@ -26,7 +26,7 @@ jobs:
         uses: GoogleCloudPlatform/release-please-action@v2
         id: release-please
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
           release-type: rust
 
       # upload artifact if release was created
