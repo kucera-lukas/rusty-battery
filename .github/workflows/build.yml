@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  release:
+    types: [created]
+
+env:
+  CARGO_TERM_COLOR: always
+  TARGET: x86_64-unknown-linux-gnu
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.toolchain }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        toolchain: [ stable ]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2.3.5
+
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.2.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install minimal ${{ matrix.toolchain }}
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          target: ${{ env.TARGET }}
+
+      - name: Create bin directory
+        run: mkdir bin --verbose
+
+      - name: Release Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target ${{ env.TARGET }} -Z unstable-options --out-dir bin
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: bin/rusty-battery
+          asset_name: rusty-battery-${{ env.TARGET }}
+          asset_content_type: application/octet-stream

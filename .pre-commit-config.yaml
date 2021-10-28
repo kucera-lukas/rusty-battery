@@ -20,3 +20,14 @@ repos:
       - id: cargo-fmt
       - id: cargo-check
       - id: clippy
+
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: v0.16.0
+    hooks:
+      - id: gitlint
+        args: [ "--contrib=CT1", "--msg-filename" ]
+
+  - repo: https://github.com/sirosen/check-jsonschema
+    rev: 0.5.1
+    hooks:
+      - id: check-github-workflows

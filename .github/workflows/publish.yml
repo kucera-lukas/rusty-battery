@@ -1,0 +1,40 @@
+name: Publish
+
+on:
+  release:
+    types: [created]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+  TARGET: x86_64-unknown-linux-gnu
+
+jobs:
+  publish:
+    name: ${{ matrix.os }} / ${{ matrix.toolchain }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        toolchain: [ stable ]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2.3.5
+
+      - name: Install minimal ${{ matrix.toolchain }}
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          target: ${{ env.TAGET }}
+
+      - name: Cargo Publish
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --token ${{ env.CARGO_TOKEN }}

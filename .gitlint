@@ -1,0 +1,12 @@
+[general]
+ignore=B6
+
+ignore-merge-commits=true
+ignore-revert-commits=true
+ignore-fixup-commits=true
+ignore-squash-commits=true
+
+contrib=contrib-title-conventional-commits
+
+[contrib-title-conventional-commits]
+types = feat,fix,docs,style,refactor,test,chore
