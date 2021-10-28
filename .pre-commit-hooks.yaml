@@ -3,6 +3,7 @@
   description: Format source code with cargo fmt
   entry: cargo fmt
   language: system
+  files: ^(.+\.rs|Cargo\.(toml|lock))$
   types: [rust]
   args: ["--all", "--", "--color", "always", "--check"]
   pass_filenames: false
@@ -12,6 +13,7 @@
   description: Check source code via cargo check
   entry: cargo check
   language: system
+  files: ^(.+\.rs|Cargo\.(toml|lock))$
   types: [rust]
   args: ["--verbose", "--all-targets"]
   pass_filenames: false
@@ -21,6 +23,7 @@
   description: Lint source code via clippy
   entry: cargo clippy
   language: system
+  files: ^(.+\.rs|Cargo\.(toml|lock))$
   types: [rust]
   args: [
       "--all-targets",
