@@ -56,7 +56,7 @@ jobs:
 
       - name: Archive Binary
         if: ${{ steps.release-please.outputs.release-created }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v2.3.0
         with:
           name: rusty-battery-${{ env.TARGET }}
           path: bin/rusty-battery
