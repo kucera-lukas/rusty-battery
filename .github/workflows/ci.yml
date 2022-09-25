@@ -1,45 +1,33 @@
-name: Code Style
+name: Continuous Integration
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - "**.rs"
-      - Cargo.toml
-      - Cargo.lock
-
-  pull_request:
-    paths:
-      - "**.rs"
-      - Cargo.toml
-      - Cargo.lock
+on: [push]
 
 jobs:
-  lint:
+  clippy:
     name: ${{ matrix.os }} / ${{ matrix.toolchain }}
 
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        toolchain: [ stable ]
+        toolchain: [ stable, beta, nightly ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v3
 
-      - name: Install minimal ${{ matrix.toolchain }} with clippy and rustfmt
+      - name: Install minimal ${{ matrix.toolchain } with clippy
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: stable
           components: rustfmt, clippy
+          override: true
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v2.0.0
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
@@ -58,3 +46,9 @@ jobs:
         with:
           command: clippy
           args: --verbose --all-features --all-targets -- -D warnings
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose --all-features --workspace

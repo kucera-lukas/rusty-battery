@@ -14,14 +14,15 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
+        toolchain: [ stable ]
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v3
 
-      - name: Install minimal stable with clippy
+      - name: Install minimal ${{ matrix.toolchain }} with clippy
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
