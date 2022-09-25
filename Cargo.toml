@@ -8,8 +8,8 @@ readme = "README.md"
 homepage = "https://kucera-lukas.github.io/rusty-battery/"
 repository = "https://github.com/kucera-lukas/rusty-battery"
 license = "MIT"
-keywords = ['cli', "battery", "notification", "kdeconnect", "linux"]
-categories = ['command-line-utilities']
+keywords = ["cli", "battery", "notification", "kdeconnect", "linux"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 structopt = "0.3"
