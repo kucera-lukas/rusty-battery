@@ -8,7 +8,7 @@ use crate::error;
 type Result<T> = result::Result<T, error::Battery>;
 type DeviceResult<T> = result::Result<T, error::BatteryDevice>;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum State {
     Charging,
     Discharging,

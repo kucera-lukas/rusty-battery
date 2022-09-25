@@ -12,7 +12,7 @@ pub struct Opts {
     pub cmd: Command,
 }
 
-#[derive(StructOpt, Debug, PartialEq)]
+#[derive(StructOpt, Debug, PartialEq, Eq)]
 pub enum Command {
     /// Notify whenever battery percentage exceeds the given threshold.
     Notify {
