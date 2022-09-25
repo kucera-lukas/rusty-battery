@@ -48,6 +48,13 @@ pub enum Command {
         /// If this value is empty, all of the KDE Connect devices will be pinged.
         #[clap(long = "kde-connect", value_parser, min_values = 0)]
         kde_connect_names: Option<Vec<String>>,
+
+        /// Disable desktop notifications
+        ///
+        /// Specify this flag if you don't want desktop notifications to be shown whenever the
+        /// chosen battery percentage exceeds the given threshold.
+        #[clap(long, value_parser)]
+        disable_desktop: bool,
     },
     /// List all available batteries of the current device.
     Batteries,

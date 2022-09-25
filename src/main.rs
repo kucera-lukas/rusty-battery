@@ -47,11 +47,13 @@ fn run_app() -> error::Result<()> {
             model,
             refresh_secs,
             kde_connect_names,
+            disable_desktop,
         } => notify(
             threshold,
             model.as_deref(),
             refresh_secs,
             kde_connect_names,
+            disable_desktop,
         )?,
         cli::Command::Batteries => batteries()?,
         cli::Command::KDEConnectDevices => kde_connect_devices()?,
@@ -65,11 +67,13 @@ fn notify(
     model: Option<&str>,
     refresh_secs: u64,
     kde_connect_names: Option<Vec<String>>,
+    disable_desktop: bool,
 ) -> error::Result<()> {
     let mut battery_device = battery::Device::try_from(model)?;
     let mut notifier = notification::Notifier::new(
         threshold,
         kde_connect_names.map(common::vec_to_set),
+        disable_desktop,
     );
 
     event::loop_(&mut battery_device, &mut notifier, refresh_secs)?;
