@@ -81,9 +81,7 @@ impl Device {
 impl TryFrom<battery::Battery> for Device {
     type Error = error::Battery;
 
-    fn try_from(
-        device: battery::Battery,
-    ) -> result::Result<Self, Self::Error> {
+    fn try_from(device: battery::Battery) -> result::Result<Self, Self::Error> {
         let device = Self {
             percentage: fetch_percentage(&device),
             state: fetch_state(&device),
