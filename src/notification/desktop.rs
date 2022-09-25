@@ -50,17 +50,20 @@ impl Notifier {
     ///
     /// Return a bool whether the notification was closed.
     pub fn close(&mut self) -> bool {
-        if let Some(handle) = self.handle.take() {
-            handle.close();
+        self.handle.take().map_or_else(
+            || {
+                log::debug!("notification to close hasn't been created yet");
 
-            log::debug!("cached desktop notification closed");
+                false
+            },
+            |handle| {
+                handle.close();
 
-            true
-        } else {
-            log::debug!("notification to close hasn't been created yet");
+                log::debug!("cached desktop notification closed");
 
-            false
-        }
+                true
+            },
+        )
     }
 
     /// Create a new desktop notification based on the battery threshold of the current instance.
