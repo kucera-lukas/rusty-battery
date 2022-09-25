@@ -93,8 +93,9 @@ impl TryFrom<battery::Battery> for Device {
         };
 
         log::info!(
-            "battery/Device: created from battery {}",
-            device.serial_number
+            "battery/Device: device {} created from battery \"{}\"",
+            device,
+            device.serial_number,
         );
 
         Ok(device)
@@ -106,8 +107,21 @@ impl TryFrom<Option<&str>> for Device {
 
     fn try_from(value: Option<&str>) -> result::Result<Self, Self::Error> {
         match value {
-            None => Self::try_from(one_battery()?),
-            Some(value) => Self::try_from(find_battery(value)?),
+            None => {
+                log::info!(
+                    "battery/Device: model not specified, checking whether device has only one",
+                );
+
+                Self::try_from(one_battery()?)
+            }
+            Some(value) => {
+                log::debug!(
+                    "battery/Device: searching for battery model \"{}\"",
+                    value
+                );
+
+                Self::try_from(find_battery(value)?)
+            }
         }
     }
 }
@@ -139,14 +153,26 @@ fn one_battery() -> Result<battery::Battery> {
     let mut batteries = batteries()?;
 
     match batteries.next() {
-        None => Err(error::Battery::NotFound {
-            model: error::Model(None),
-        }),
-        Some(battery) => match batteries.next() {
-            None => Ok(battery?),
-            Some(_) => Err(error::Battery::NotFound {
+        None => {
+            log::error!("battery/one: 0 batteries found");
+
+            Err(error::Battery::NotFound {
                 model: error::Model(None),
-            }),
+            })
+        }
+        Some(battery) => match batteries.next() {
+            None => {
+                log::info!("battery/one: single battery found");
+
+                Ok(battery?)
+            }
+            Some(_) => {
+                log::error!("battery/one: more than 1 battery found");
+
+                Err(error::Battery::NotFound {
+                    model: error::Model(None),
+                })
+            }
         },
     }
 }
@@ -156,13 +182,30 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
     for battery in batteries()? {
         match battery {
             Ok(battery) => {
-                if battery.model() == Some(model) {
+                let found = battery.model().map_or_else(
+                    || {
+                        log::debug!("battery/find: missing model name");
+
+                        false
+                    },
+                    |m| {
+                        log::trace!("battery/find: checking battery \"{}\"", m);
+
+                        m == model
+                    },
+                );
+
+                if found {
+                    log::info!("battery/find: battery \"{}\" found", model);
+
                     return Ok(battery);
                 }
             }
             Err(e) => return Err(error::Battery::from(e)),
         }
     }
+
+    log::error!("battery/find: battery \"{}\" not found", model);
 
     Err(error::Battery::NotFound {
         model: error::Model(Some(model.to_owned())),
@@ -172,38 +215,54 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
 /// Return current battery percentage of the given `battery::Battery` device.
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 fn fetch_percentage(device: &battery::Battery) -> u8 {
-    device
+    let percentage = device
         .state_of_charge()
         .get::<battery::units::ratio::percent>()
-        .trunc() as u8
+        .trunc() as u8;
+
+    log::trace!("battery: fetched state of charge = {}", percentage);
+
+    percentage
 }
 
 /// Return current `BatterState` of the given `battery::Battery` device.
 fn fetch_state(device: &battery::Battery) -> State {
-    match device.state() {
+    let state = match device.state() {
         battery::State::Charging | battery::State::Full => State::Charging,
         battery::State::Discharging | battery::State::Empty => {
             State::Discharging
         }
         _ => State::Unknown,
-    }
+    };
+
+    log::trace!("battery: fetched battery state = {}", state);
+
+    state
 }
 
 /// Return battery model of the given `battery::Battery` device.
 fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
-    Ok(device
+    let model = device
         .model()
         .ok_or(error::BatteryDevice::Model)?
-        .to_owned())
+        .to_owned();
+
+    log::trace!("battery: fetched model = {}", model);
+
+    Ok(model)
 }
 
 /// Return serial number of the given `battery::Battery` device.
 fn fetch_serial_number(device: &battery::Battery) -> DeviceResult<String> {
-    Ok(device
+    let serial_number = device
         .serial_number()
         .ok_or(error::BatteryDevice::SerialNumber)?
         .trim()
-        .to_owned())
+        .to_owned();
+
+    log::trace!("battery: fetched serial number = {}", serial_number);
+
+    Ok(serial_number)
 }
 
 mod std_fmt_impls {

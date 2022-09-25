@@ -45,6 +45,23 @@ where
     }
 }
 
+pub fn format_string_set(set: &HashSet<String>) -> String {
+    let size = set.iter().map(|s| s.len() + 1).sum();
+
+    let mut result = String::with_capacity(size);
+
+    if let Some(first) = set.iter().next() {
+        result.push_str(first);
+    }
+
+    for s in set {
+        result.push_str(", ");
+        result.push_str(s);
+    }
+
+    result
+}
+
 pub fn slice_to_string(slice: &[u8]) -> String {
     String::from_utf8_lossy(slice).to_string()
 }
