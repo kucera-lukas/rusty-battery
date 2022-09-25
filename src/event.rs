@@ -39,7 +39,8 @@ fn sleep_and_refresh(
 
 /// Put the current thread to sleep for the specified amount of seconds.
 fn sleep(secs: u64) {
-    log::debug!("sleeping for {} seconds", secs);
+    log::debug!("event: sleeping for {} seconds", secs);
+
     thread::sleep(time::Duration::from_secs(secs));
 }
 

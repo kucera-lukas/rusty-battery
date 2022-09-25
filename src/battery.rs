@@ -47,7 +47,7 @@ impl Device {
         self.refresh_percentage();
         self.refresh_state();
 
-        log::info!("refreshed = {}", self);
+        log::info!("battery/Device: refreshed state = {}", self);
 
         Ok(self)
     }
@@ -58,7 +58,7 @@ impl Device {
         let percentage = fetch_percentage(&self.battery);
         self.percentage = percentage;
 
-        self.debug(&format!("battery percentage = {}%", percentage));
+        self.debug(&format!("refreshed percentage = {}%", percentage));
 
         percentage
     }
@@ -68,29 +68,34 @@ impl Device {
         let state = fetch_state(&self.battery);
         self.state = state;
 
-        self.debug(&format!("state = {}", state));
+        self.debug(&format!("refreshed state = {}", state));
 
         state
     }
 
     fn debug(&self, message: &str) {
-        log::debug!("Battery Device {}: {}", self.serial_number, message);
+        log::debug!("battery/Device {}: {}", self.serial_number, message);
     }
 }
 
 impl TryFrom<battery::Battery> for Device {
     type Error = error::Battery;
 
-    fn try_from(device: battery::Battery) -> result::Result<Self, Self::Error> {
+    fn try_from(
+        battery: battery::Battery,
+    ) -> result::Result<Self, Self::Error> {
         let device = Self {
-            percentage: fetch_percentage(&device),
-            state: fetch_state(&device),
-            model: fetch_model(&device)?,
-            serial_number: fetch_serial_number(&device)?,
-            battery: device,
+            percentage: fetch_percentage(&battery),
+            state: fetch_state(&battery),
+            model: fetch_model(&battery)?,
+            serial_number: fetch_serial_number(&battery)?,
+            battery,
         };
 
-        log::info!("{}", device);
+        log::info!(
+            "battery/Device: created from battery {}",
+            device.serial_number
+        );
 
         Ok(device)
     }
@@ -111,6 +116,7 @@ impl TryFrom<Option<&str>> for Device {
 /// Acts as an high level API for the CLI `Batteries` subcommand.
 pub fn print_devices() -> Result<()> {
     common::print_slice(&devices()?);
+
     Ok(())
 }
 
