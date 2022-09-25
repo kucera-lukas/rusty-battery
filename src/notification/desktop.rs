@@ -35,11 +35,11 @@ impl Notifier {
         if let Some(handle) = &mut self.handle {
             handle.update();
 
-            log::debug!("cached desktop notification shown");
+            log::debug!("notification/desktop: cached notification shown");
         } else {
             self.handle = Some(self.notification().show()?);
 
-            log::debug!("desktop notification shown and cached");
+            log::debug!("notification/desktop: notification shown and cached");
         }
         Ok(self.handle.as_ref().expect("cached notification missing"))
     }
@@ -52,14 +52,14 @@ impl Notifier {
     pub fn close(&mut self) -> bool {
         self.handle.take().map_or_else(
             || {
-                log::debug!("notification to close hasn't been created yet");
+                log::debug!("notification/desktop: notification hasn't been created yet");
 
                 false
             },
             |handle| {
                 handle.close();
 
-                log::debug!("cached desktop notification closed");
+                log::debug!("notification/desktop: cached notification closed");
 
                 true
             },

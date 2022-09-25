@@ -36,7 +36,7 @@ impl Notifier {
             common::warn_on_err(kde_connect.ping());
         }
 
-        log::info!("Notifier: all notifications sent");
+        log::info!("notification/Notifier: all notifications sent");
     }
 
     /// Remove notification on every supported platform.
@@ -50,7 +50,7 @@ impl Notifier {
             desktop.close();
         }
 
-        log::info!("Notifier: all notifications removed");
+        log::info!("notification/Notifier: all notifications removed");
     }
 }
 

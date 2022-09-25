@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::fmt::Display;
 use std::hash::Hash;
+use std::io;
 use std::process::{Command, Output};
-use std::{io, result};
 
 use cached::proc_macro::cached;
 
@@ -21,7 +21,7 @@ where
     v.into_iter().collect()
 }
 
-pub fn warn_on_err<T, E>(result: result::Result<T, E>) -> Option<T>
+pub fn warn_on_err<T, E>(result: Result<T, E>) -> Option<T>
 where
     E: Display,
 {
@@ -50,7 +50,7 @@ pub fn slice_to_string(slice: &[u8]) -> String {
 }
 
 pub fn command(args: &str) -> Result<Output, io::Error> {
-    log::debug!("sh -c \"{}\"", args);
+    log::debug!("common/command: sh -c \"{}\"", args);
 
     Command::new("sh").arg("-c").arg(args).output()
 }

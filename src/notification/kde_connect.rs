@@ -58,7 +58,7 @@ impl Notifier {
             ping(device, &common::warning_message(self.threshold))
         })?;
 
-        log::debug!("available KDE Connect devices pinged");
+        log::debug!("notification/kde_connect: available devices pinged");
 
         Ok(())
     }
@@ -88,6 +88,7 @@ pub fn print_devices() -> Result<()> {
     common::print_slice(
         &all_devices_map()?.into_values().collect::<Vec<Device>>(),
     );
+
     Ok(())
 }
 
@@ -136,7 +137,9 @@ fn ping(device: &Device, message: &str) -> Result<()> {
         // needs to be wrapped in quotes otherwise only the first word of the message  would be sent
         &format!("\"{}\"", message),
     ])?;
-    log::debug!("pinged - {}", &device);
+
+    log::debug!("notification/kde_connect: {} pinged", &device);
+
     Ok(())
 }
 
