@@ -1,8 +1,8 @@
 # rusty-battery
 
 [![crates.io](https://img.shields.io/crates/v/rusty-battery?logo=rust)](https://crates.io/crates/rusty-battery)
-[![Test Suite](https://github.com/kucera-lukas/rusty-battery/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/kucera-lukas/rusty-battery/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/kucera-lukas/rusty-battery/branch/main/graph/badge.svg?token=1MM2CUE75Q)](https://codecov.io/gh/kucera-lukas/rusty-battery)
+[![pages-build-deployment](https://github.com/kucera-lukas/rusty-battery/actions/workflows/pages/pages-build-deployment/badge.svg)](https://rustybattery.lukaskucera.com)
+[![Continuous Integration](https://github.com/kucera-lukas/rusty-battery/actions/workflows/ci.yml/badge.svg)](https://github.com/kucera-lukas/rusty-battery/actions/workflows/ci.yml)
 
 CLI tool to help you care about your devices's battery health.
 
