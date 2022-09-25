@@ -1,5 +1,6 @@
 ci:
-  autoupdate: weekly
+  skip: [cargo-fmt, cargo-check, clippy]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
@@ -15,7 +16,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/kucera-lukas/rusty-battery
-    rev: 62889ddc4203194fa556e88df6dbbd2843eeda1d
+    rev: v0.2.1
     hooks:
       - id: cargo-fmt
       - id: cargo-check
@@ -26,8 +27,3 @@ repos:
     hooks:
       - id: gitlint
         args: [ "--contrib=CT1", "--msg-filename" ]
-
-  - repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.5.1
-    hooks:
-      - id: check-github-workflows
