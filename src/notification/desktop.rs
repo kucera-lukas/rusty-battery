@@ -44,6 +44,28 @@ impl Notifier {
         Ok(self.handle.as_ref().expect("cached notification missing"))
     }
 
+    /// Close a desktop notification alerting the user that the battery threshold has been reached.
+    ///
+    /// If the `NotificationHandle` has not yet been created this is a noop.
+    ///
+    /// Return a bool whether the notification was closed.
+    pub fn close(&mut self) -> bool {
+        self.handle.take().map_or_else(
+            || {
+                log::debug!("notification to close hasn't been created yet");
+
+                false
+            },
+            |handle| {
+                handle.close();
+
+                log::debug!("cached desktop notification closed");
+
+                true
+            },
+        )
+    }
+
     /// Create a new desktop notification based on the battery threshold of the current instance.
     fn notification(&self) -> Notification {
         create_notification(

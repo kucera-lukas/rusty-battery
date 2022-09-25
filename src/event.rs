@@ -19,6 +19,8 @@ pub fn loop_(
             && battery_device.state == battery::State::Charging
         {
             notifier.notify();
+        } else {
+            notifier.remove();
         }
 
         sleep_and_refresh(refresh_secs, battery_device)?;
