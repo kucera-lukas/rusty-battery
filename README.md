@@ -166,7 +166,7 @@ tail -f /path/to/log/file
 
 ### Debugging
 
-- [here is a useful thread](https://askubuntu.com/questions/23009/why-crontab-scripts-are-not-working) for crontab debugging
+- [Here is a useful thread](https://askubuntu.com/questions/23009/why-crontab-scripts-are-not-working) for crontab debugging
 - To check that `rusty-battery` is running you can use
 
 ```sh

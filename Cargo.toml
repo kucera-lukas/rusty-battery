@@ -2,10 +2,10 @@
 name = "rusty-battery"
 version = "0.2.1"
 edition = "2021"
-description = "CLI tool to help you care about your device's battery health."
-documentation = "https://kucera-lukas.github.io/rusty-battery/"
+description = "CLI tool which notifies you when laptop battery reaches a threshold."
+documentation = "https://rustybattery.lukaskucera.com"
 readme = "README.md"
-homepage = "https://kucera-lukas.github.io/rusty-battery/"
+homepage = "https://rustybattery.lukaskucera.com"
 repository = "https://github.com/kucera-lukas/rusty-battery"
 license = "MIT"
 keywords = ["cli", "battery", "notification", "kdeconnect", "linux"]
