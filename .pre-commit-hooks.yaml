@@ -25,11 +25,5 @@
   language: system
   files: ^(.+\.rs|Cargo\.(toml|lock))$
   types: [rust]
-  args: [
-      "--all-targets",
-      "--all-features",
-      "--",
-      "-D",
-      "warnings",
-  ]
+  args: ["--all-targets", "--all-features", "--", "-D", "warnings"]
   pass_filenames: false

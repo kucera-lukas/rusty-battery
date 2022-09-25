@@ -10,7 +10,8 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery
+    clippy::nursery,
+    clippy::cargo
 )]
 #![allow(clippy::needless_for_each)]
 
@@ -65,7 +66,7 @@ fn notify(
     refresh_secs: u64,
     kde_connect_names: Option<Vec<String>>,
 ) -> error::Result<()> {
-    let mut battery_device = battery::Device::try_from(model.as_deref())?;
+    let mut battery_device = battery::Device::try_from(model)?;
     let mut notifier = notification::Notifier::new(
         threshold,
         kde_connect_names.map(common::vec_to_set),
