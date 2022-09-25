@@ -23,66 +23,93 @@ showing a desktop notification and optionally pinging your
 
 ## notify
 
-Notify whenever battery percentage exceeds the given threshold.
+Notify whenever battery percentage exceeds the given threshold
 
 USAGE:
-`rusty-battery notify [FLAGS] [OPTIONS]`
 
-FLAGS:
-
-    -v, --verbose
-            Activates verbose mode
+    rusty-battery notify [OPTIONS]
 
 OPTIONS:
 
-    --kde-connect <kde-connect-names>...
+    --disable-desktop
+            Disable desktop notifications
+
+            Specify this flag if you don't want desktop notifications to be shown whenever the
+            chosen battery percentage exceeds the given threshold.
+
+    -h, --help
+            Print help information
+
+    --kde-connect [<KDE_CONNECT_NAMES>...]
             KDE Connect device names
 
             If this value is not present, KDE Connect will not be used.
 
             If this value is empty, all of the KDE Connect devices will be pinged.
 
-    -m, --model <model>
+    -m, --model <MODEL>
             Battery model name
 
-            If this value is omitted and only battery device is found for the current device, that one will be used.
+            If this value is omitted and only battery device is found for the current device, that
+            one will be used.
 
-            Otherwise, please use the `batteries` subcommand to get a list of all battery devices to get the model of
-            the wanted battery device which should be monitored.
+            Otherwise, please use the `batteries` subcommand to get a list of all battery devices to
+            get the model of the wanted battery device which should be monitored.
 
-        --refresh-secs <refresh-secs>
+    -q, --quiet
+            Less output per occurrence
+
+    --refresh-secs <REFRESH_SECS>
             Number of seconds to wait before refreshing battery device data
 
-            After every battery device refresh, its data will be checked. Notifications will be sent everytime they
-            should be, based on the new refreshed battery device data. [default: 30]
+            After every battery device refresh, its data will be checked. Notifications will be sent
+            everytime they should be, based on the new refreshed battery device data.
 
-    -t, --threshold <threshold>
+            [default: 30]
+
+    -t, --threshold <THRESHOLD>
             Battery charge threshold
 
-            Whenever the chosen battery device reaches this charge threshold and will be charging, notifications will be
-            sent, alerting that the charger should be unplugged. [default: 80]
+            Whenever the chosen battery device reaches this charge threshold and will be charging,
+            notifications will be sent, alerting that the charger should be unplugged.
+
+            [default: 80]
+
+    -v, --verbose
+            More output per occurrence
+
+    -V, --version
+            Print version information
 
 ## batteries
 
 List all available batteries of the current device
 
 USAGE:
-`rusty-battery batteries [FLAGS]`
 
-FLAGS:
+    rusty-battery batteries [OPTIONS]
 
-    -v, --verbose    Activates verbose mode
+OPTIONS:
+
+    -h, --help       Print help information
+    -q, --quiet      Less output per occurrence
+    -v, --verbose    More output per occurrence
+    -V, --version    Print version information
 
 ## kde-connect-devices
 
 List all available KDE Connect devices
 
 USAGE:
-`rusty-battery kde-connect-devices [FLAGS]`
 
-FLAGS:
+    rusty-battery kde-connect-devices [OPTIONS]
 
-    -v, --verbose    Activates verbose mode
+OPTIONS:
+
+    -h, --help       Print help information
+    -q, --quiet      Less output per occurrence
+    -v, --verbose    More output per occurrence
+    -V, --version    Print version information
 
 # Installation
 

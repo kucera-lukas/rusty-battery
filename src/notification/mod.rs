@@ -18,10 +18,23 @@ impl Notifier {
     pub fn new(
         threshold: u8,
         kde_connect_names: Option<HashSet<String>>,
+        disable_desktop: bool,
     ) -> Self {
         Self {
             threshold,
-            desktop: Some(desktop::Notifier::new(threshold)),
+            desktop: if disable_desktop {
+                log::info!(
+                    "notification/Notifier: desktop notifications disabled",
+                );
+
+                None
+            } else {
+                log::info!(
+                    "notification/Notifier: desktop notifications enabled",
+                );
+
+                Some(desktop::Notifier::new(threshold))
+            },
             kde_connect: kde_connect_names
                 .map(|names| kde_connect::Notifier::new(threshold, names)),
         }
