@@ -1,18 +1,19 @@
-use structopt::StructOpt;
+use clap::{Parser, Subcommand};
 
 /// Tool to help you care about your device's battery health.
-#[derive(StructOpt, Debug)]
-#[structopt(name = "rusty-battery")]
-pub struct Opts {
-    /// Activates verbose mode
-    #[structopt(short, long, parse(from_occurrences), global = true)]
-    pub verbose: u8,
+#[derive(Parser, Debug)]
+#[clap(author, version, about)]
+#[clap(propagate_version = true)]
+pub struct Cli {
+    /// Control log level with `--verbose` and `--quiet` flags.
+    #[clap(flatten)]
+    pub verbose: clap_verbosity_flag::Verbosity,
 
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     pub cmd: Command,
 }
 
-#[derive(StructOpt, Debug, PartialEq, Eq)]
+#[derive(Subcommand, Debug, PartialEq, Eq)]
 pub enum Command {
     /// Notify whenever battery percentage exceeds the given threshold.
     Notify {
@@ -20,7 +21,7 @@ pub enum Command {
         ///
         /// Whenever the chosen battery device reaches this charge threshold and will be
         /// charging, notifications will be sent, alerting that the charger should be unplugged.
-        #[structopt(short, long, default_value = "80")]
+        #[clap(short, long, value_parser, default_value_t = 80)]
         threshold: u8,
 
         /// Battery model name
@@ -30,14 +31,14 @@ pub enum Command {
         ///
         /// Otherwise, please use the `batteries` subcommand to get a list of all battery devices
         /// to get the model of the wanted battery device which should be monitored.
-        #[structopt(short, long)]
+        #[clap(short, long, value_parser)]
         model: Option<String>,
 
         /// Number of seconds to wait before refreshing battery device data
         ///
         /// After every battery device refresh, its data will be checked. Notifications will be
         /// sent everytime they should be, based on the new refreshed battery device data.
-        #[structopt(long, default_value = "30")]
+        #[clap(long, value_parser, default_value_t = 30)]
         refresh_secs: u64,
 
         /// KDE Connect device names
@@ -45,7 +46,7 @@ pub enum Command {
         /// If this value is not present, KDE Connect will not be used.
         ///
         /// If this value is empty, all of the KDE Connect devices will be pinged.
-        #[structopt(long = "kde-connect")]
+        #[clap(long = "kde-connect", value_parser, min_values = 0)]
         kde_connect_names: Option<Vec<String>>,
     },
     /// List all available batteries of the current device.
@@ -54,6 +55,6 @@ pub enum Command {
     KDEConnectDevices,
 }
 
-pub fn parse() -> Opts {
-    Opts::from_args()
+pub fn parse() -> Cli {
+    Cli::parse()
 }

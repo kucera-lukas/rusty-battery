@@ -4,14 +4,16 @@ use log::LevelFilter;
 use std::io::Write;
 
 /// Initialize `env_logger`.
-pub fn init(verbose: u8) {
-    create_builder(verbose).init();
+pub fn init(verbose: &clap_verbosity_flag::Verbosity) {
+    let level_filter = verbose.log_level_filter();
+
+    create_builder(level_filter).init();
+
+    log::debug!("env_logger initialized with RUST_LOG={}", level_filter);
 }
 
 /// Return `env_logger::Builder`
-pub fn create_builder(verbose: u8) -> Builder {
-    let level_filter = create_level_filter(verbose);
-
+fn create_builder(level_filter: LevelFilter) -> Builder {
     let mut builder = Builder::new();
 
     builder
@@ -26,18 +28,7 @@ pub fn create_builder(verbose: u8) -> Builder {
         })
         .filter(None, level_filter);
 
-    log::debug!("env_logger created with RUST_LOG={}", level_filter);
-
     builder
-}
-
-/// Return `log::LevelFilter`.
-const fn create_level_filter(verbose: u8) -> LevelFilter {
-    match verbose {
-        0 => LevelFilter::Error,
-        1 => LevelFilter::Info,
-        2..=u8::MAX => LevelFilter::Debug,
-    }
 }
 
 #[cfg(test)]
@@ -53,8 +44,8 @@ mod tests {
         expected = "Builder::init should not be called after logger initialized: SetLoggerError(())"
     )]
     fn test_init_logger_initialized() {
-        init(0);
-        init(0);
+        init(&clap_verbosity_flag::Verbosity::new(0, 0));
+        init(&clap_verbosity_flag::Verbosity::new(0, 0));
     }
 
     #[test]
@@ -63,30 +54,8 @@ mod tests {
         log::error!("test-error");
     }
 
-    #[test]
-    fn test_create_level_filter_error() {
-        let filter = create_level_filter(0);
-
-        assert_eq!(filter, LevelFilter::Error);
-    }
-
-    #[test]
-    fn test_create_level_filter_info() {
-        let filter = create_level_filter(1);
-
-        assert_eq!(filter, LevelFilter::Info);
-    }
-
-    #[test]
-    fn test_create_level_filter_debug() {
-        let filter = create_level_filter(2);
-
-        assert_eq!(filter, LevelFilter::Debug);
-    }
-
-    fn assert_create_builder(verbose: u8) {
-        let builder = create_builder(verbose);
-        let level_filter = create_level_filter(verbose);
+    fn assert_create_builder(level_filter: LevelFilter) {
+        let builder = create_builder(level_filter);
 
         assert!(
             format!("{:?}", builder).contains(&format!("{:?}", level_filter))
@@ -94,17 +63,32 @@ mod tests {
     }
 
     #[test]
+    fn test_create_builder_off() {
+        assert_create_builder(LevelFilter::Off);
+    }
+
+    #[test]
     fn test_create_builder_error() {
-        assert_create_builder(0);
+        assert_create_builder(LevelFilter::Error);
+    }
+
+    #[test]
+    fn test_create_builder_warn() {
+        assert_create_builder(LevelFilter::Warn);
     }
 
     #[test]
     fn test_create_builder_info() {
-        assert_create_builder(1);
+        assert_create_builder(LevelFilter::Info);
     }
 
     #[test]
     fn test_create_builder_debug() {
-        assert_create_builder(2);
+        assert_create_builder(LevelFilter::Debug);
+    }
+
+    #[test]
+    fn test_create_builder_trace() {
+        assert_create_builder(LevelFilter::Trace);
     }
 }

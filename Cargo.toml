@@ -3,6 +3,7 @@ name = "rusty-battery"
 version = "0.3.0"
 edition = "2021"
 description = "CLI tool which notifies you when laptop battery reaches a threshold."
+authors = ["Lukas Kucera <lukas.kucera.g@gmail.com>"]
 documentation = "https://rustybattery.lukaskucera.com"
 readme = "README.md"
 homepage = "https://rustybattery.lukaskucera.com"
@@ -12,7 +13,8 @@ keywords = ["cli", "battery", "notification", "kdeconnect", "linux"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-structopt = "0.3"
+clap = { version = "3.2.22", features = ["derive"] }
+clap-verbosity-flag = "1.0.1"
 battery = "0.7.8"
 notify-rust = "4"
 cached = "0.39.0"

@@ -39,7 +39,7 @@ fn main() {
 fn run_app() -> error::Result<()> {
     let opts = cli::parse();
 
-    logger::init(opts.verbose);
+    logger::init(&opts.verbose);
 
     match opts.cmd {
         cli::Command::Notify {
