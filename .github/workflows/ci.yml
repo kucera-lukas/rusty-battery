@@ -18,7 +18,7 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v3
 
-      - name: Install minimal ${{ matrix.toolchain }} with clippy
+      - name: Install minimal ${{ matrix.toolchain }} with rustfmt and clippy
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
