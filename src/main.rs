@@ -10,7 +10,8 @@
     clippy::complexity,
     clippy::perf,
     clippy::pedantic,
-    clippy::nursery
+    clippy::nursery,
+    clippy::cargo
 )]
 #![allow(clippy::needless_for_each)]
 

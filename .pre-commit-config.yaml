@@ -1,6 +1,8 @@
 ci:
   skip: [cargo-fmt, cargo-check, clippy]
 
+default_stages: [commit]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
