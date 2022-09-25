@@ -27,7 +27,7 @@ impl Notifier {
         }
     }
 
-    /// Send notification on every platform.
+    /// Send notification to every supported platform.
     pub fn notify(&mut self) {
         if let Some(desktop) = &mut self.desktop {
             common::warn_on_err(desktop.show());
@@ -37,6 +37,20 @@ impl Notifier {
         }
 
         log::info!("Notifier: all notifications sent");
+    }
+
+    /// Remove notification on every supported platform.
+    ///
+    /// Currently only desktop notifier is supported.
+    ///
+    /// KDE Connect notifier is not supported as we can't remove the pinged notification from the
+    /// device.
+    pub fn remove(&mut self) {
+        if let Some(desktop) = &mut self.desktop {
+            desktop.close();
+        }
+
+        log::info!("Notifier: all notifications removed");
     }
 }
 
