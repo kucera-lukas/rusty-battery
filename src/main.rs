@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![doc = include_str ! ("../README.md")]
 #![doc(
     html_favicon_url = "https://raw.githubusercontent.com/kucera-lukas/rusty-battery/main/assets/img/favicon.ico",
     html_logo_url = "https://raw.githubusercontent.com/kucera-lukas/rusty-battery/main/assets/img/logo.png"
@@ -17,6 +17,7 @@
 
 use std::convert::TryFrom;
 use std::process;
+use std::sync::mpsc;
 
 mod battery;
 mod cli;
@@ -76,7 +77,16 @@ fn notify(
         disable_desktop,
     )?;
 
-    event::loop_(&mut battery_device, &mut notifier, refresh_secs)?;
+    let (shutdown_sender, shutdown_receiver) = mpsc::channel();
+
+    event::set_handler(shutdown_sender)?;
+
+    event::loop_(
+        &shutdown_receiver,
+        &mut battery_device,
+        &mut notifier,
+        refresh_secs,
+    )?;
 
     Ok(())
 }
