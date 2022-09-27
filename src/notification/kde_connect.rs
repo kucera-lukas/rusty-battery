@@ -46,8 +46,8 @@ pub struct Notifier {
 
 impl Notifier {
     /// Create a new `Notifier` instance.
-    pub fn new(threshold: u8, device_names: HashSet<String>) -> Self {
-        Self {
+    pub fn new(threshold: u8, device_names: HashSet<String>) -> Result<Self> {
+        let notifier = Self {
             threshold,
             device_names: if device_names.is_empty() {
                 log::info!(
@@ -64,7 +64,12 @@ impl Notifier {
 
                 Some(device_names)
             },
-        }
+        };
+
+        // check kdeconnect-cli status and also warn if some specified devices aren't available
+        notifier.find_available()?;
+
+        Ok(notifier)
     }
 
     /// Ping all available `Device` instances.
@@ -91,12 +96,7 @@ impl Notifier {
 
         Ok(match &self.device_names {
             None => devices.into_values().collect(),
-            Some(names) => names
-                .iter()
-                .filter_map(|name| {
-                    common::warn_on_err(find_device(&mut devices, name))
-                })
-                .collect(),
+            Some(names) => find_devices(&mut devices, names),
         })
     }
 }
@@ -141,6 +141,22 @@ fn device_map(list: &str) -> Result<HashMap<String, Device>> {
         .collect()
 }
 
+/// Search the given `HashMap` of devices for devices with a name present in the given `HashSet`.
+fn find_devices(
+    devices: &mut HashMap<String, Device>,
+    names: &HashSet<String>,
+) -> Vec<Device> {
+    names
+        .iter()
+        .filter_map(|name| {
+            common::warn_on_err(
+                "notification/kde_connect",
+                find_device(devices, name),
+            )
+        })
+        .collect()
+}
+
 /// Return `Device` from the given `HashMap` if there is a mapping to it via the given name.
 fn find_device(
     devices: &mut HashMap<String, Device>,
@@ -168,11 +184,15 @@ fn ping(device: &Device, message: &str) -> Result<()> {
 
 /// Return `kdeconnect-cli` stdout listing all devices via the `list-devices` argument.
 fn list_devices() -> Result<String> {
+    log::debug!("notification/kde_connect: listing all devices");
+
     execute(&["--list-devices", "--id-name-only"])
 }
 
 /// Return `kdeconnect-cli` stdout listing all available devices via the `list-available` argument.
 fn list_available() -> Result<String> {
+    log::debug!("notification/kde_connect: listing all available devices");
+
     execute(&["--list-available", "--id-name-only"])
 }
 
@@ -191,7 +211,7 @@ fn execute(args: &[&str]) -> Result<String> {
 
     let stdout = common::slice_to_string(output.stdout.as_slice());
     if !stdout.is_empty() {
-        log::debug!("kdeconnect-cli: stdout = {}", &stdout.trim());
+        log::trace!("kdeconnect-cli: stdout = {}", &stdout.trim());
     }
 
     Ok(stdout)

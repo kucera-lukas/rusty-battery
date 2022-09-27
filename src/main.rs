@@ -74,7 +74,7 @@ fn notify(
         threshold,
         kde_connect_names.map(common::vec_to_set),
         disable_desktop,
-    );
+    )?;
 
     event::loop_(&mut battery_device, &mut notifier, refresh_secs)?;
 

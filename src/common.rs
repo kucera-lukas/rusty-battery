@@ -21,11 +21,11 @@ where
     v.into_iter().collect()
 }
 
-pub fn warn_on_err<T, E>(result: Result<T, E>) -> Option<T>
+pub fn warn_on_err<T, E>(prefix: &str, result: Result<T, E>) -> Option<T>
 where
     E: Display,
 {
-    result.map_err(|e| log::warn!("{}", e)).ok()
+    result.map_err(|e| log::warn!("{}: {}", prefix, e)).ok()
 }
 
 pub fn print_slice<T>(slice: &[T])
@@ -116,7 +116,7 @@ mod tests {
     fn test_warn_on_err_ok() {
         let r: Result<(), error::Error> = Ok(());
 
-        let result = warn_on_err(r);
+        let result = warn_on_err("test/common", r);
 
         assert_eq!(Some(()), result);
     }
@@ -128,7 +128,7 @@ mod tests {
                 model: error::Model(Some("test".into())),
             }));
 
-        let result = warn_on_err(r);
+        let result = warn_on_err("test/common", r);
 
         assert_eq!(None, result);
     }
