@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.3.0...v0.4.0) (2022-09-27)
+
+### Features
+
+- add cli flag to disable desktop notifications ([#124](https://github.com/kucera-lukas/rusty-battery/issues/124)) ([ca2060f](https://github.com/kucera-lukas/rusty-battery/commit/ca2060f566e15ca69442e2eb52bed8ec95fe7267))
+- add prefix to logging messages ([#123](https://github.com/kucera-lukas/rusty-battery/issues/123)) ([d89f690](https://github.com/kucera-lukas/rusty-battery/commit/d89f69016ac9f0f09796177fd22f42d26ad90663))
+- log information connected to cli startup ([#125](https://github.com/kucera-lukas/rusty-battery/issues/125)) ([3881a6e](https://github.com/kucera-lukas/rusty-battery/commit/3881a6eb06a66bf5eeba13fc63ca43b0844e748b))
+- migrate to clap v3 ([#121](https://github.com/kucera-lukas/rusty-battery/issues/121)) ([96f9028](https://github.com/kucera-lukas/rusty-battery/commit/96f90287214a3c39ce2b1c6445bb34c15abfeff2))
+
 ## [0.3.0](https://www.github.com/kucera-lukas/rusty-battery/compare/v0.2.1...v0.3.0) (2022-09-25)
 
 ### Features
