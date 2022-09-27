@@ -2,8 +2,12 @@ pub mod desktop;
 pub mod kde_connect;
 
 use std::collections::HashSet;
+use std::result;
 
 use crate::common;
+use crate::error;
+
+type Result<T> = result::Result<T, error::Error>;
 
 #[derive(Debug)]
 pub struct Notifier {
@@ -19,43 +23,52 @@ impl Notifier {
         threshold: u8,
         kde_connect_names: Option<HashSet<String>>,
         disable_desktop: bool,
-    ) -> Self {
+    ) -> Result<Self> {
         log::info!("notification/Notifier: threshold set to {}", threshold);
 
-        Self {
+        let desktop = if disable_desktop {
+            log::info!("notification/Notifier: desktop notifications disabled",);
+
+            None
+        } else {
+            log::info!("notification/Notifier: desktop notifications enabled",);
+
+            Some(desktop::Notifier::new(threshold))
+        };
+
+        let kde_connect: Result<Option<kde_connect::Notifier>> =
+            kde_connect_names.map_or_else(
+                || {
+                    log::info!(
+                    "notification/Notifier: KDE Connect notifications disabled"
+                );
+
+                    Ok(None)
+                },
+                |names| {
+                    log::info!(
+                    "notification/Notifier: KDE Connect notifications enabled"
+                );
+
+                    Ok(Some(kde_connect::Notifier::new(threshold, names)?))
+                },
+            );
+
+        Ok(Self {
             threshold,
-            desktop: if disable_desktop {
-                log::info!(
-                    "notification/Notifier: desktop notifications disabled",
-                );
-
-                None
-            } else {
-                log::info!(
-                    "notification/Notifier: desktop notifications enabled",
-                );
-
-                Some(desktop::Notifier::new(threshold))
-            },
-            kde_connect: kde_connect_names.map_or_else(|| {
-                log::info!("notification/Notifier: KDE Connect notifications disabled");
-
-                None
-            }, |names| {
-                log::info!("notification/Notifier: KDE Connect notifications enabled");
-
-                Some(kde_connect::Notifier::new(threshold, names))
-            })
-        }
+            desktop,
+            kde_connect: kde_connect?,
+        })
     }
 
     /// Send notification to every supported platform.
     pub fn notify(&mut self) {
         if let Some(desktop) = &mut self.desktop {
-            common::warn_on_err(desktop.show());
+            common::warn_on_err("notification/Notifier", desktop.show());
         }
+
         if let Some(kde_connect) = &self.kde_connect {
-            common::warn_on_err(kde_connect.ping());
+            common::warn_on_err("notification/Notifier", kde_connect.ping());
         }
 
         log::info!("notification/Notifier: all notifications sent");
