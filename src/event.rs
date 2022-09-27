@@ -14,6 +14,11 @@ pub fn loop_(
     notifier: &mut Notifier,
     refresh_secs: u64,
 ) -> Result<()> {
+    log::info!(
+        "event: starting loop with {} seconds refresh interval",
+        refresh_secs
+    );
+
     loop {
         if battery_device.percentage >= notifier.threshold
             && battery_device.state == battery::State::Charging
@@ -33,7 +38,9 @@ fn sleep_and_refresh(
     battery_device: &mut battery::Device,
 ) -> Result<()> {
     sleep(secs);
+
     battery_device.refresh()?;
+
     Ok(())
 }
 

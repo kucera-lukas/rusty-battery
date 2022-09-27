@@ -22,8 +22,13 @@ impl TryFrom<&str> for Device {
 
     fn try_from(value: &str) -> result::Result<Self, Self::Error> {
         let mut data = value.split_whitespace().map(ToOwned::to_owned);
+
         let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
+        log::trace!("notification/kde_connect: device id = {}", id);
+
         let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
+        log::trace!("notification/kde_connect: device name = {}", name);
+
         Ok(Self { id, name })
     }
 }
@@ -45,8 +50,18 @@ impl Notifier {
         Self {
             threshold,
             device_names: if device_names.is_empty() {
+                log::info!(
+                    "notification/kde_connect: no device names specified,
+                    all available devices will be pinged",
+                );
+
                 None
             } else {
+                log::info!(
+                    "notification/kde_connect: will ping devices with names {}",
+                    common::format_string_set(&device_names),
+                );
+
                 Some(device_names)
             },
         }
@@ -55,6 +70,11 @@ impl Notifier {
     /// Ping all available `Device` instances.
     pub fn ping(&self) -> Result<()> {
         self.find_available()?.iter().try_for_each(|device| {
+            log::trace!(
+                "notification/kde_connect: pinging device {}",
+                device.id
+            );
+
             ping(device, &common::warning_message(self.threshold))
         })?;
 
@@ -113,6 +133,9 @@ fn device_map(list: &str) -> Result<HashMap<String, Device>> {
     list.lines()
         .map(|line| {
             let device = Device::try_from(line)?;
+
+            log::debug!("notification/kde_connect: created device {}", device,);
+
             Ok((device.name.clone(), device))
         })
         .collect()

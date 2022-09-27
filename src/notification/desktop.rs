@@ -41,6 +41,7 @@ impl Notifier {
 
             log::debug!("notification/desktop: notification shown and cached");
         }
+
         Ok(self.handle.as_ref().expect("cached notification missing"))
     }
 
@@ -77,6 +78,12 @@ impl Notifier {
 
 /// Create a new desktop notification with the given summary and body.
 fn create_notification(summary: &str, body: &str) -> Notification {
+    log::trace!(
+        "notification/desktop: creating notification with summary = \"{}\" and body = \"{}\"",
+        summary,
+        body,
+    );
+
     Notification::new()
         .appname("rusty-battery")
         .summary(summary)

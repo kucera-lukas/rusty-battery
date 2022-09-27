@@ -20,6 +20,8 @@ impl Notifier {
         kde_connect_names: Option<HashSet<String>>,
         disable_desktop: bool,
     ) -> Self {
+        log::info!("notification/Notifier: threshold set to {}", threshold);
+
         Self {
             threshold,
             desktop: if disable_desktop {
@@ -35,8 +37,15 @@ impl Notifier {
 
                 Some(desktop::Notifier::new(threshold))
             },
-            kde_connect: kde_connect_names
-                .map(|names| kde_connect::Notifier::new(threshold, names)),
+            kde_connect: kde_connect_names.map_or_else(|| {
+                log::info!("notification/Notifier: KDE Connect notifications disabled");
+
+                None
+            }, |names| {
+                log::info!("notification/Notifier: KDE Connect notifications enabled");
+
+                Some(kde_connect::Notifier::new(threshold, names))
+            })
         }
     }
 

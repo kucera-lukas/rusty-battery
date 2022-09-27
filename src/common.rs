@@ -45,6 +45,25 @@ where
     }
 }
 
+pub fn format_string_set(set: &HashSet<String>) -> String {
+    let size = set.iter().map(|s| s.len() + 1).sum();
+
+    let mut result = String::with_capacity(size);
+
+    let mut set_iter = set.iter();
+
+    if let Some(first) = set_iter.next() {
+        result.push_str(first);
+    }
+
+    for s in set_iter {
+        result.push_str(", ");
+        result.push_str(s);
+    }
+
+    result
+}
+
 pub fn slice_to_string(slice: &[u8]) -> String {
     String::from_utf8_lossy(slice).to_string()
 }
@@ -130,6 +149,25 @@ mod tests {
         let result = format_option(&option);
 
         assert_eq!("123", result);
+    }
+
+    #[test]
+    fn test_format_string_set() {
+        let set = HashSet::from(["1".into(), "2".into()]);
+
+        let result = format_string_set(&set);
+
+        // set is unordered so we might get one of these 2 options
+        assert!(["1, 2".into(), "2, 1".into()].contains(&result));
+    }
+
+    #[test]
+    fn test_format_string_set_empty() {
+        let set = HashSet::new();
+
+        let result = format_string_set(&set);
+
+        assert_eq!(result, "");
     }
 
     #[test]
