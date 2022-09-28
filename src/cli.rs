@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+use crate::parser;
+
 /// Tool to help you care about your device's battery health.
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -21,7 +23,7 @@ pub enum Command {
         ///
         /// Whenever the chosen battery device reaches this charge threshold and will be
         /// charging, notifications will be sent, alerting that the charger should be unplugged.
-        #[clap(short, long, value_parser, default_value_t = 80)]
+        #[clap(short, long, value_parser = parser::threshold, default_value_t = 80)]
         threshold: u8,
 
         /// Battery model name

@@ -251,7 +251,7 @@ mod std_fmt_impls {
 
             write!(
                 f,
-                "KDE Connect Notifier: threshold = {}, device_names = {}",
+                "KDE Connect Notifier: threshold = {}%, device_names = {}",
                 self.threshold, device_names,
             )
         }

@@ -26,6 +26,7 @@ mod error;
 mod event;
 mod logger;
 mod notification;
+mod parser;
 
 fn main() {
     process::exit(match run_app() {
