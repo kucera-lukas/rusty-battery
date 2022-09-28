@@ -1,5 +1,4 @@
 use std::sync::mpsc;
-use std::sync::mpsc::RecvTimeoutError;
 use std::time;
 use std::{process, result};
 
@@ -77,14 +76,14 @@ fn wait_and_refresh(
             Ok(())
         }
         Err(e) => match e {
-            RecvTimeoutError::Timeout => {
+            mpsc::RecvTimeoutError::Timeout => {
                 log::trace!("event: {}", e);
 
                 battery_device.refresh()?;
 
                 Ok(())
             }
-            RecvTimeoutError::Disconnected => {
+            mpsc::RecvTimeoutError::Disconnected => {
                 log::error!("event: {}", e);
 
                 Err(error::Error::System(error::System::RecvTimeout(e)))
