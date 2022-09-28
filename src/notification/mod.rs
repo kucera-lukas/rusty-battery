@@ -1,11 +1,11 @@
-pub mod desktop;
-pub mod kde_connect;
-
 use std::collections::HashSet;
 use std::result;
 
 use crate::common;
 use crate::error;
+
+pub mod desktop;
+pub mod kde_connect;
 
 type Result<T> = result::Result<T, error::Error>;
 
@@ -24,14 +24,14 @@ impl Notifier {
         kde_connect_names: Option<HashSet<String>>,
         disable_desktop: bool,
     ) -> Result<Self> {
-        log::info!("notification/Notifier: threshold set to {}", threshold);
+        log::info!("notification/Notifier: threshold set to {}%", threshold);
 
         let desktop = if disable_desktop {
-            log::info!("notification/Notifier: desktop notifications disabled",);
+            log::info!("notification/Notifier: desktop notifications disabled");
 
             None
         } else {
-            log::info!("notification/Notifier: desktop notifications enabled",);
+            log::info!("notification/Notifier: desktop notifications enabled");
 
             Some(desktop::Notifier::new(threshold))
         };

@@ -101,17 +101,18 @@ mod std_fmt_impls {
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "Desktop: threshold = {}", self.threshold,)
+            write!(f, "Desktop: threshold = {}%", self.threshold)
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use notify_rust::{Hint, Timeout};
 
     use super::*;
-    use std::collections::HashSet;
 
     fn assert_notification(
         notification: &Notification,

@@ -51,7 +51,7 @@ impl Notifier {
             threshold,
             device_names: if device_names.is_empty() {
                 log::info!(
-                    "notification/kde_connect: no device names specified,
+                    "notification/kde_connect: no device names specified, \
                     all available devices will be pinged",
                 );
 
@@ -251,7 +251,7 @@ mod std_fmt_impls {
 
             write!(
                 f,
-                "KDE Connect Notifier: threshold = {}, device_names = {}",
+                "KDE Connect Notifier: threshold = {}%, device_names = {}",
                 self.threshold, device_names,
             )
         }
