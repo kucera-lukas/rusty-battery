@@ -71,12 +71,13 @@ fn notify(
     kde_connect_names: Option<Vec<String>>,
     disable_desktop: bool,
 ) -> error::Result<()> {
-    if disable_desktop && kde_connect_names.is_none() {
-        return Err(error::Error::from(error::Notification::Config {
-            kind: "both desktop and KDE connect notifications are disabled"
-                .into(),
-        }));
-    }
+    validate_notify_input(
+        threshold,
+        model,
+        refresh_secs,
+        &kde_connect_names,
+        disable_desktop,
+    )?;
 
     let mut battery_device = battery::Device::try_from(model)?;
     let mut notifier = notification::Notifier::new(
@@ -99,6 +100,23 @@ fn notify(
     Ok(())
 }
 
+fn validate_notify_input(
+    _threshold: u8,
+    _model: Option<&str>,
+    _refresh_secs: u64,
+    kde_connect_names: &Option<Vec<String>>,
+    disable_desktop: bool,
+) -> error::Result<()> {
+    if disable_desktop && kde_connect_names.is_none() {
+        return Err(error::Error::from(error::Notification::Config {
+            kind: "both desktop and KDE connect notifications are disabled"
+                .into(),
+        }));
+    };
+
+    Ok(())
+}
+
 fn batteries() -> error::Result<()> {
     Ok(battery::print_devices()?)
 }
@@ -112,7 +130,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_notify_notifications_disabled() {
+    fn test_validate_notify_input_notifications_disabled() {
         let result = notify(0, None, 0, None, true);
 
         assert!(result.is_err());
