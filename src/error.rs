@@ -1,5 +1,6 @@
 use std::io;
 use std::result;
+use std::sync::mpsc;
 
 use thiserror::Error;
 
@@ -13,6 +14,8 @@ pub enum Error {
     KDEConnect(#[from] KDEConnect),
     #[error("something went wrong with notification: {}", .0)]
     Notification(#[from] Notification),
+    #[error("something went wrong with the system: {}", .0)]
+    System(#[from] System),
 }
 
 #[derive(Debug)]
@@ -20,8 +23,8 @@ pub struct Model(pub Option<String>);
 
 #[derive(Error, Debug)]
 pub enum Battery {
-    #[error("battery information failure: {}", .0)]
-    System(#[from] battery::Error),
+    #[error("battery routine failure: {}", .0)]
+    Routine(#[from] battery::Error),
     #[error("battery device not found: model = {model}")]
     NotFound { model: Model },
     #[error("battery device error: {}", .0)]
@@ -58,6 +61,14 @@ pub enum KDEConnectDevice {
     ID,
     #[error("failed to retrieve device name")]
     Name,
+}
+
+#[derive(Error, Debug)]
+pub enum System {
+    #[error("signal handler failure: {}", .0)]
+    Handler(#[from] ctrlc::Error),
+    #[error("receive timeout error: {}", .0)]
+    RecvTimeout(#[from] mpsc::RecvTimeoutError),
 }
 
 mod std_fmt_impls {

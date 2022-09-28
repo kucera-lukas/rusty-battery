@@ -1,23 +1,26 @@
-use std::result;
-use std::thread;
+use std::sync::mpsc;
 use std::time;
+use std::{process, result};
 
 use crate::battery;
 use crate::error;
 use crate::notification::Notifier;
 
-type Result<T> = result::Result<T, error::Battery>;
+type Result<T> = result::Result<T, error::Error>;
 
 /// Loop infinitely processing battery charge threshold events.
 pub fn loop_(
+    shutdown_receiver: &mpsc::Receiver<()>,
     battery_device: &mut battery::Device,
     notifier: &mut Notifier,
     refresh_secs: u64,
 ) -> Result<()> {
     log::info!(
         "event: starting loop with {} seconds refresh interval",
-        refresh_secs
+        refresh_secs,
     );
+
+    let refresh_duration = time::Duration::from_secs(refresh_secs);
 
     loop {
         if battery_device.percentage >= notifier.threshold
@@ -28,42 +31,72 @@ pub fn loop_(
             notifier.remove();
         }
 
-        sleep_and_refresh(refresh_secs, battery_device)?;
+        wait_and_refresh(
+            shutdown_receiver,
+            battery_device,
+            notifier,
+            refresh_duration,
+        )?;
     }
 }
 
-/// Refresh given `BatteryInfo` instance and sleep for the given amount of seconds.
-fn sleep_and_refresh(
-    secs: u64,
-    battery_device: &mut battery::Device,
-) -> Result<()> {
-    sleep(secs);
+/// Register signal handler for SIGINT, SIGTERM and SIGHUP.
+///
+/// The handling thread sends a value to a channel via the given `Sender`.
+pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
+    ctrlc::set_handler(move || {
+        log::info!("event: got signal, exiting...");
 
-    battery_device.refresh()?;
+        shutdown_sender.send(()).unwrap_or_else(|e| {
+            log::error!("event: {}", e);
+
+            process::exit(1);
+        });
+    })
+    .map_err(|e| error::Error::System(error::System::Handler(e)))?;
 
     Ok(())
 }
 
-/// Put the current thread to sleep for the specified amount of seconds.
-fn sleep(secs: u64) {
-    log::debug!("event: sleeping for {} seconds", secs);
+/// Wait on the given `Receiver` and refresh the given battery `Device`.
+///
+/// If `Receiver` receives a value within the given `Duration` shutdown the process.
+/// If the `Receiver` times out refresh the given `Device` and return.
+/// If the other half of the `Receiver` channel gets disconnected return error.
+fn wait_and_refresh(
+    shutdown_receiver: &mpsc::Receiver<()>,
+    battery_device: &mut battery::Device,
+    notifier: &mut Notifier,
+    refresh_duration: time::Duration,
+) -> Result<()> {
+    match shutdown_receiver.recv_timeout(refresh_duration) {
+        Ok(_) => {
+            handle_shutdown(notifier);
 
-    thread::sleep(time::Duration::from_secs(secs));
+            Ok(())
+        }
+        Err(e) => match e {
+            mpsc::RecvTimeoutError::Timeout => {
+                log::trace!("event: {}", e);
+
+                battery_device.refresh()?;
+
+                Ok(())
+            }
+            mpsc::RecvTimeoutError::Disconnected => {
+                log::error!("event: {}", e);
+
+                Err(error::Error::System(error::System::RecvTimeout(e)))
+            }
+        },
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::time;
+/// Handle shutdown by removing all notifications and terminating the current process.
+fn handle_shutdown(notifier: &mut Notifier) {
+    notifier.remove();
 
-    use super::*;
+    log::debug!("event: terminating current process");
 
-    #[test]
-    fn test_sleep() {
-        let now = time::Instant::now();
-        let secs = 1;
-
-        sleep(secs);
-
-        assert_eq!(now.elapsed().as_secs(), secs);
-    }
+    process::exit(0);
 }
