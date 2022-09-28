@@ -71,6 +71,13 @@ fn notify(
     kde_connect_names: Option<Vec<String>>,
     disable_desktop: bool,
 ) -> error::Result<()> {
+    if disable_desktop && kde_connect_names.is_none() {
+        return Err(error::Error::from(error::Notification::Config {
+            kind: "both desktop and KDE connect notifications are disabled"
+                .into(),
+        }));
+    }
+
     let mut battery_device = battery::Device::try_from(model)?;
     let mut notifier = notification::Notifier::new(
         threshold,

@@ -25,7 +25,7 @@ pub struct Model(pub Option<String>);
 pub enum Battery {
     #[error("battery routine failure: {}", .0)]
     Routine(#[from] battery::Error),
-    #[error("battery device not found: model = {model}")]
+    #[error("battery device not found: model = \"{model}\"")]
     NotFound { model: Model },
     #[error("battery device error: {}", .0)]
     Device(#[from] BatteryDevice),
@@ -41,6 +41,8 @@ pub enum BatteryDevice {
 
 #[derive(Error, Debug)]
 pub enum Notification {
+    #[error("configuration failure: {kind}")]
+    Config { kind: String },
     #[error("something went wrong with desktop notification: {}", .0)]
     Desktop(#[from] notify_rust::error::Error),
 }
