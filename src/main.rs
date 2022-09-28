@@ -106,3 +106,21 @@ fn batteries() -> error::Result<()> {
 fn kde_connect_devices() -> error::Result<()> {
     Ok(notification::kde_connect::print_devices()?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_notify_notifications_disabled() {
+        let result = notify(0, None, 0, None, true);
+
+        assert!(result.is_err());
+        result.unwrap_or_else(|e| {
+            assert!(matches!(
+                e,
+                error::Error::Notification(error::Notification::Config { .. })
+            ));
+        });
+    }
+}
