@@ -65,9 +65,9 @@ pub enum KDEConnectDevice {
 
 #[derive(Error, Debug)]
 pub enum System {
-    #[error("something went wrong with a signal handler: {}", .0)]
+    #[error("signal handler failure: {}", .0)]
     Handler(#[from] ctrlc::Error),
-    #[error("something went wrong with a channel timeout: {}", .0)]
+    #[error("receive timeout error: {}", .0)]
     RecvTimeout(#[from] mpsc::RecvTimeoutError),
 }
 
