@@ -46,10 +46,10 @@ pub fn loop_(
 /// The handling thread sends a value to a channel via the given `Sender`.
 pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
     ctrlc::set_handler(move || {
-        log::info!("main: got signal, quitting...");
+        log::info!("event: got signal, exiting...");
 
-        shutdown_sender.send(()).unwrap_or_else(|_| {
-            log::error!("event: shutdown receiver has been deallocated");
+        shutdown_sender.send(()).unwrap_or_else(|e| {
+            log::error!("event: {}", e);
 
             process::exit(1);
         });
@@ -78,12 +78,14 @@ fn wait_and_refresh(
         }
         Err(e) => match e {
             RecvTimeoutError::Timeout => {
+                log::trace!("event: {}", e);
+
                 battery_device.refresh()?;
 
                 Ok(())
             }
             RecvTimeoutError::Disconnected => {
-                log::error!("event: shutdown sender disconnected");
+                log::error!("event: {}", e);
 
                 Err(error::Error::System(error::System::RecvTimeout(e)))
             }
