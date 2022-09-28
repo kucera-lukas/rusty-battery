@@ -73,6 +73,8 @@ OPTIONS:
             Whenever the chosen battery device reaches this charge threshold and will be charging,
             notifications will be sent, alerting that the charger should be unplugged.
 
+            [minimum: 0] [maximum: 100]
+
             [default: 80]
 
     -v, --verbose
@@ -165,7 +167,8 @@ crontab -e
 ```
 
 2. Paste in `@reboot rusty-battery notify [YOUR OPTIONS]`
-3. Save and exit the text editor, you should see `crontab: installing new crontab` in your terminal
+3. Save and exit the text editor, you should
+   see `crontab: installing new crontab` in your terminal
 4. Reboot the system
 
 ```sh
@@ -193,7 +196,8 @@ tail -f /path/to/log/file
 
 ### Debugging
 
-- [Here is a useful thread](https://askubuntu.com/questions/23009/why-crontab-scripts-are-not-working) for crontab debugging
+- [Here is a useful thread](https://askubuntu.com/questions/23009/why-crontab-scripts-are-not-working)
+  for crontab debugging
 - To check that `rusty-battery` is running you can use
 
 ```sh

@@ -23,6 +23,8 @@ pub enum Command {
         ///
         /// Whenever the chosen battery device reaches this charge threshold and will be
         /// charging, notifications will be sent, alerting that the charger should be unplugged.
+        ///
+        /// [minimum: 0] [maximum: 100]
         #[clap(short, long, value_parser = parser::threshold, default_value_t = 80)]
         threshold: u8,
 
