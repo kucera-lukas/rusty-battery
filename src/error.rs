@@ -49,7 +49,7 @@ pub enum Notification {
 
 #[derive(Error, Debug)]
 pub enum KDEConnect {
-    #[error("kdeconnect-cli is not installed on this system: {}", .0)]
+    #[error("KDE Connect CLI is not installed on this system: {}", .0)]
     Cli(#[from] io::Error),
     #[error("KDE Connect device error: {}", .0)]
     Device(#[from] KDEConnectDevice),

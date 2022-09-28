@@ -9,7 +9,8 @@ use cached::proc_macro::cached;
 #[cached]
 pub fn warning_message(threshold: u8) -> String {
     format!(
-        "Battery percentage reached the {}% threshold, please unplug your charger",
+        "Battery percentage reached the {}% threshold, \
+        please unplug your charger",
         threshold,
     )
 }
@@ -32,7 +33,10 @@ pub fn print_slice<T>(slice: &[T])
 where
     T: Display,
 {
-    slice.iter().for_each(|item| println!("{}", item));
+    slice
+        .iter()
+        .enumerate()
+        .for_each(|(index, item)| println!("{}. {item}", index + 1));
 }
 
 pub fn format_option<T>(option: &Option<T>) -> String

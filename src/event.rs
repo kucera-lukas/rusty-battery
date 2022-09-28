@@ -60,8 +60,11 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
 
 /// Wait on the given `Receiver` and refresh the given battery `Device`.
 ///
-/// If `Receiver` receives a value within the given `Duration` shutdown the process.
-/// If the `Receiver` times out refresh the given `Device` and return.
+/// If `Receiver` receives a value within the given `Duration`
+/// handle the process shutdown.
+///
+/// If the `Receiver` times out refresh the given `Device`.
+///
 /// If the other half of the `Receiver` channel gets disconnected return error.
 fn wait_and_refresh(
     shutdown_receiver: &mpsc::Receiver<()>,
@@ -92,7 +95,7 @@ fn wait_and_refresh(
     }
 }
 
-/// Handle shutdown by removing all notifications and terminating the current process.
+/// Handle shutdown by removing notifications and terminating current process.
 fn handle_shutdown(notifier: &mut Notifier) {
     notifier.remove();
 

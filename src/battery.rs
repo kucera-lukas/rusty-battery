@@ -47,7 +47,7 @@ impl Device {
         self.refresh_percentage();
         self.refresh_state();
 
-        log::info!("battery/Device: refreshed state = {}", self);
+        log::info!("battery: refreshed state = {}", self);
 
         Ok(self)
     }
@@ -74,7 +74,7 @@ impl Device {
     }
 
     fn debug(&self, message: &str) {
-        log::debug!("battery/Device {}: {}", self.serial_number, message);
+        log::debug!("battery: \"{}\" {}", self.serial_number, message);
     }
 }
 
@@ -93,7 +93,7 @@ impl TryFrom<battery::Battery> for Device {
         };
 
         log::info!(
-            "battery/Device: device {} created from battery \"{}\"",
+            "battery: device {} created from battery \"{}\"",
             device,
             device.serial_number,
         );
@@ -109,15 +109,16 @@ impl TryFrom<Option<&str>> for Device {
         match value {
             None => {
                 log::info!(
-                    "battery/Device: model not specified, checking whether device has only one",
+                    "battery: model not specified, \
+                    checking whether device has only one",
                 );
 
                 Self::try_from(one_battery()?)
             }
             Some(value) => {
                 log::debug!(
-                    "battery/Device: searching for battery model \"{}\"",
-                    value
+                    "battery: searching for battery model \"{}\"",
+                    value,
                 );
 
                 Self::try_from(find_battery(value)?)
@@ -125,7 +126,8 @@ impl TryFrom<Option<&str>> for Device {
         }
     }
 }
-/// Print all available `BatteryDevice` instances formatted in a nice and readable way.
+
+/// Print all available `BatteryDevice`s formatted in a readable way.
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
 pub fn print_devices() -> Result<()> {
@@ -148,7 +150,7 @@ fn batteries() -> Result<
     Ok(battery::Manager::new()?.batteries()?)
 }
 
-/// Return `battery::Battery` instance if it's the only one found for the current device.
+/// Return `Battery` instance if it's the only one found for the current device.
 fn one_battery() -> Result<battery::Battery> {
     let mut batteries = batteries()?;
 
@@ -188,10 +190,13 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
 
                         false
                     },
-                    |m| {
-                        log::trace!("battery/find: checking battery \"{}\"", m);
+                    |battery_model| {
+                        log::trace!(
+                            "battery/find: checking battery \"{}\"",
+                            battery_model
+                        );
 
-                        m == model
+                        battery_model == model
                     },
                 );
 
@@ -220,7 +225,7 @@ fn fetch_percentage(device: &battery::Battery) -> u8 {
         .get::<battery::units::ratio::percent>()
         .trunc() as u8;
 
-    log::trace!("battery: fetched state of charge = {}", percentage);
+    log::trace!("battery: fetched state of charge = {}%", percentage);
 
     percentage
 }
@@ -247,7 +252,7 @@ fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
         .ok_or(error::BatteryDevice::Model)?
         .to_owned();
 
-    log::trace!("battery: fetched model = {}", model);
+    log::trace!("battery: fetched model = \"{}\"", model);
 
     Ok(model)
 }
@@ -284,7 +289,8 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Battery Device {}: percentage = {}%, state = {}, model = {}",
+                "Battery Device {}: percentage = {}%, \
+                state = {}, model = \"{}\"",
                 self.serial_number, self.percentage, self.state, self.model,
             )
         }
@@ -311,5 +317,14 @@ mod tests {
         let display = format!("{}", state);
 
         assert_eq!(display, "Discharging");
+    }
+
+    #[test]
+    fn test_battery_state_unknown_display() {
+        let state = State::Unknown;
+
+        let display = format!("{}", state);
+
+        assert_eq!(display, "Unknown");
     }
 }

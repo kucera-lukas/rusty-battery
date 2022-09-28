@@ -22,13 +22,14 @@ impl Notifier {
         }
     }
 
-    /// Show a desktop notification alerting the user that the battery threshold has been reached.
+    /// Show a desktop notification that the battery threshold has been reached.
     ///
-    /// If this is the first time this function is called a completely new notification is created
-    /// and cached.
+    /// If this is the first time this function is called
+    /// a completely new notification is created and cached.
     ///
-    /// If this function has previously been used there is no need to create a new `Notification` as
-    /// we can just show the previously created one via it's `update` method.
+    /// If this function has previously been used there is no need
+    /// to create a new `Notification` as we can just show the previously
+    /// created one via it's `update` method.
     ///
     /// Return a reference to the current `NotificationHandle`.
     pub fn show(&mut self) -> Result<&NotificationHandle> {
@@ -45,7 +46,7 @@ impl Notifier {
         Ok(self.handle.as_ref().expect("cached notification missing"))
     }
 
-    /// Close a desktop notification alerting the user that the battery threshold has been reached.
+    /// Close the current desktop notification if it exists.
     ///
     /// If the `NotificationHandle` has not yet been created this is a noop.
     ///
@@ -53,7 +54,7 @@ impl Notifier {
     pub fn close(&mut self) -> bool {
         self.handle.take().map_or_else(
             || {
-                log::debug!("notification/desktop: notification hasn't been created yet");
+                log::debug!("notification/desktop: handle not yet created");
 
                 false
             },
@@ -67,7 +68,7 @@ impl Notifier {
         )
     }
 
-    /// Create a new desktop notification based on the battery threshold of the current instance.
+    /// Create a new desktop notification with the battery charge threshold.
     fn notification(&self) -> Notification {
         create_notification(
             "Charge limit warning",
@@ -79,7 +80,8 @@ impl Notifier {
 /// Create a new desktop notification with the given summary and body.
 fn create_notification(summary: &str, body: &str) -> Notification {
     log::trace!(
-        "notification/desktop: creating notification with summary = \"{}\" and body = \"{}\"",
+        "notification/desktop: creating notification with \
+        summary = \"{}\" and body = \"{}\"",
         summary,
         body,
     );
@@ -97,11 +99,22 @@ fn create_notification(summary: &str, body: &str) -> Notification {
 mod std_fmt_impls {
     use std::fmt;
 
+    use notify_rust::NotificationHandle;
+
+    use crate::common;
+
     use super::Notifier;
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "Desktop: threshold = {}%", self.threshold)
+            write!(
+                f,
+                "Desktop: threshold = {}%, handle = {}",
+                self.threshold,
+                common::format_option(
+                    &self.handle.as_ref().map(NotificationHandle::id)
+                )
+            )
         }
     }
 }
@@ -142,10 +155,15 @@ mod tests {
         let notifier = Notifier::new(0);
         let notification = notifier.notification();
 
-        assert_notification(&notification, "Charge limit warning", &format!(
-            "Battery percentage reached the {}% threshold, please unplug your charger",
-            notifier.threshold,
-        ));
+        assert_notification(
+            &notification,
+            "Charge limit warning",
+            &format!(
+                "Battery percentage reached the {}% threshold, \
+                please unplug your charger",
+                notifier.threshold,
+            ),
+        );
     }
 
     #[test]
@@ -156,5 +174,14 @@ mod tests {
         let notification = create_notification(summary, body);
 
         assert_notification(&notification, summary, body);
+    }
+
+    #[test]
+    fn test_notifier_display_none_handle() {
+        let notifier = Notifier::new(0);
+
+        let result = notifier.to_string();
+
+        assert_eq!(result, "Desktop: threshold = 0%, handle = None");
     }
 }

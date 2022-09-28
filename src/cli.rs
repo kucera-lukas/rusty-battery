@@ -21,27 +21,35 @@ pub enum Command {
     Notify {
         /// Battery charge threshold
         ///
-        /// Whenever the chosen battery device reaches this charge threshold and will be
-        /// charging, notifications will be sent, alerting that the charger should be unplugged.
+        /// Whenever the chosen battery device reaches this charge threshold
+        /// and will be charging, notifications will be sent, alerting that
+        /// the charger should be unplugged.
         ///
         /// [minimum: 0] [maximum: 100]
-        #[clap(short, long, value_parser = parser::threshold, default_value_t = 80)]
+        #[clap(
+        short,
+        long,
+        value_parser = parser::threshold,
+        default_value_t = 80
+        )]
         threshold: u8,
 
         /// Battery model name
         ///
-        /// If this value is omitted and only battery device is found for the current device,
-        /// that one will be used.
+        /// If this value is omitted and only battery device is found
+        /// for the current device, that one will be used.
         ///
-        /// Otherwise, please use the `batteries` subcommand to get a list of all battery devices
-        /// to get the model of the wanted battery device which should be monitored.
+        /// Otherwise, please use the `batteries` subcommand
+        /// to get a list of all battery devices to get the model of the
+        /// wanted battery device which should be monitored.
         #[clap(short, long, value_parser)]
         model: Option<String>,
 
         /// Number of seconds to wait before refreshing battery device data
         ///
-        /// After every battery device refresh, its data will be checked. Notifications will be
-        /// sent everytime they should be, based on the new refreshed battery device data.
+        /// After every battery device refresh, its data will be checked.
+        /// Notifications will be sent everytime they should be, based on the
+        /// new refreshed battery device data.
         #[clap(long, value_parser, default_value_t = 30)]
         refresh_secs: u64,
 
@@ -49,14 +57,16 @@ pub enum Command {
         ///
         /// If this value is not present, KDE Connect will not be used.
         ///
-        /// If this value is empty, all of the KDE Connect devices will be pinged.
+        /// If this value is empty,
+        /// all of the KDE Connect devices will be pinged.
         #[clap(long = "kde-connect", value_parser, min_values = 0)]
         kde_connect_names: Option<Vec<String>>,
 
         /// Disable desktop notifications
         ///
-        /// Specify this flag if you don't want desktop notifications to be shown whenever the
-        /// chosen battery percentage exceeds the given threshold.
+        /// Specify this flag if you don't want desktop notifications
+        /// to be shown whenever the chosen battery percentage exceeds the
+        /// given threshold.
         #[clap(long, value_parser)]
         disable_desktop: bool,
     },
