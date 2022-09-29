@@ -16,8 +16,7 @@ pub fn loop_(
     refresh_secs: u64,
 ) -> Result<()> {
     log::info!(
-        "event: starting loop with {} seconds refresh interval",
-        refresh_secs,
+        "event: starting loop with {refresh_secs} seconds refresh interval"
     );
 
     let refresh_duration = time::Duration::from_secs(refresh_secs);
@@ -48,7 +47,7 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
         log::info!("event: got signal, exiting...");
 
         shutdown_sender.send(()).unwrap_or_else(|e| {
-            log::error!("event: {}", e);
+            log::error!("event: {e}");
 
             process::exit(1);
         });
@@ -60,8 +59,11 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
 
 /// Wait on the given `Receiver` and refresh the given battery `Device`.
 ///
-/// If `Receiver` receives a value within the given `Duration` shutdown the process.
-/// If the `Receiver` times out refresh the given `Device` and return.
+/// If `Receiver` receives a value within the given `Duration`
+/// handle the process shutdown.
+///
+/// If the `Receiver` times out refresh the given `Device`.
+///
 /// If the other half of the `Receiver` channel gets disconnected return error.
 fn wait_and_refresh(
     shutdown_receiver: &mpsc::Receiver<()>,
@@ -77,14 +79,14 @@ fn wait_and_refresh(
         }
         Err(e) => match e {
             mpsc::RecvTimeoutError::Timeout => {
-                log::trace!("event: {}", e);
+                log::trace!("event: {e}");
 
                 battery_device.refresh()?;
 
                 Ok(())
             }
             mpsc::RecvTimeoutError::Disconnected => {
-                log::error!("event: {}", e);
+                log::error!("event: {e}");
 
                 Err(error::Error::System(error::System::RecvTimeout(e)))
             }
@@ -92,7 +94,7 @@ fn wait_and_refresh(
     }
 }
 
-/// Handle shutdown by removing all notifications and terminating the current process.
+/// Handle shutdown by removing notifications and terminating current process.
 fn handle_shutdown(notifier: &mut Notifier) {
     notifier.remove();
 

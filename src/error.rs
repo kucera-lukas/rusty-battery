@@ -49,7 +49,7 @@ pub enum Notification {
 
 #[derive(Error, Debug)]
 pub enum KDEConnect {
-    #[error("kdeconnect-cli is not installed on this system: {}", .0)]
+    #[error("KDE Connect CLI is not installed on this system: {}", .0)]
     Cli(#[from] io::Error),
     #[error("KDE Connect device error: {}", .0)]
     Device(#[from] KDEConnectDevice),
@@ -82,7 +82,7 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match &self.0 {
                 None => write!(f, "None"),
-                Some(model) => write!(f, "{}", model),
+                Some(model) => write!(f, "{model}"),
             }
         }
     }

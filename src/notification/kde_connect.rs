@@ -24,10 +24,10 @@ impl TryFrom<&str> for Device {
         let mut data = value.split_whitespace().map(ToOwned::to_owned);
 
         let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
-        log::trace!("notification/kde_connect: device id = {}", id);
+        log::trace!("notification/kde_connect: device id = {id}");
 
         let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
-        log::trace!("notification/kde_connect: device name = {}", name);
+        log::trace!("notification/kde_connect: device name = {name}");
 
         Ok(Self { id, name })
     }
@@ -66,7 +66,8 @@ impl Notifier {
             },
         };
 
-        // check kdeconnect-cli status and also warn if some specified devices aren't available
+        // check KDE Connect CLI availability
+        // also warns if some specified devices aren't available
         notifier.find_available()?;
 
         Ok(notifier)
@@ -90,7 +91,8 @@ impl Notifier {
 
     /// Return all `Device` instances which are currently available.
     ///
-    /// If no `device_names` were specified at the creation, all available devices will be returned.
+    /// If no `device_names` were specified at the creation,
+    /// all available devices will be returned.
     fn find_available(&self) -> Result<Vec<Device>> {
         let mut devices = available_devices_map()?;
 
@@ -114,14 +116,14 @@ pub fn print_devices() -> Result<()> {
 
 /// Return a mapping between name and its corresponding `Device` instance.
 ///
-/// `Devices` are collected from the `list-devices` `kde-connect-cli` argument.
+/// `Device`s are collected via the `list-devices` KDE Connect CLI option.
 fn all_devices_map() -> Result<HashMap<String, Device>> {
     device_map(&list_devices()?)
 }
 
 /// Return a mapping between name and its corresponding `Device` instance.
 ///
-/// `Devices` are collected from the `list-available` `kde-connect-cli` argument.
+/// `Devices` are collected via the `list-available` KDE Connect CLI option.
 fn available_devices_map() -> Result<HashMap<String, Device>> {
     device_map(&list_available()?)
 }
@@ -134,14 +136,14 @@ fn device_map(list: &str) -> Result<HashMap<String, Device>> {
         .map(|line| {
             let device = Device::try_from(line)?;
 
-            log::debug!("notification/kde_connect: created device {}", device,);
+            log::debug!("notification/kde_connect: created device {device}");
 
             Ok((device.name.clone(), device))
         })
         .collect()
 }
 
-/// Search the given `HashMap` of devices for devices with a name present in the given `HashSet`.
+/// Search the given `HashMap` for devices with a name in the given `HashSet`.
 fn find_devices(
     devices: &mut HashMap<String, Device>,
     names: &HashSet<String>,
@@ -157,7 +159,7 @@ fn find_devices(
         .collect()
 }
 
-/// Return `Device` from the given `HashMap` if there is a mapping to it via the given name.
+/// Search the given `HashMap` for a device with the given name.
 fn find_device(
     devices: &mut HashMap<String, Device>,
     name: &str,
@@ -167,51 +169,52 @@ fn find_device(
         .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })
 }
 
-/// Ping the given `Device` via the `kdeconnect-cli` `ping-msg` command.
+/// Ping the given `Device` via the KDE Connect CLI `ping-msg` option.
 fn ping(device: &Device, message: &str) -> Result<()> {
     execute(&[
         "--device",
         &device.id,
         "--ping-msg",
-        // needs to be wrapped in quotes otherwise only the first word of the message  would be sent
-        &format!("\"{}\"", message),
+        // needs to be wrapped in quotes
+        // otherwise only the first word of the message would be sent
+        &format!("\"{message}\""),
     ])?;
 
-    log::debug!("notification/kde_connect: {} pinged", &device);
+    log::debug!("notification/kde_connect: {device} pinged");
 
     Ok(())
 }
 
-/// Return `kdeconnect-cli` stdout listing all devices via the `list-devices` argument.
+/// Return stdout of the `list-devices` KDE Connect CLI option.
 fn list_devices() -> Result<String> {
     log::debug!("notification/kde_connect: listing all devices");
 
     execute(&["--list-devices", "--id-name-only"])
 }
 
-/// Return `kdeconnect-cli` stdout listing all available devices via the `list-available` argument.
+/// Return stdout of the `list-available` KDE Connect CLI option.
 fn list_available() -> Result<String> {
     log::debug!("notification/kde_connect: listing all available devices");
 
     execute(&["--list-available", "--id-name-only"])
 }
 
-/// Execute `kdeconnect-cli` command with the given arguments.
+/// Execute KDE Connect CLI command with the given arguments.
 ///
 /// Warn if any data is passed into stderr.
 /// Return stdout data.
 fn execute(args: &[&str]) -> Result<String> {
     let output =
-        common::command(&format!("{} {}", "kdeconnect-cli", args.join(" ")))?;
+        common::command(&format!("kdeconnect-cli {}", args.join(" ")))?;
 
     let stderr = common::slice_to_string(output.stderr.as_slice());
     if !stderr.is_empty() {
-        log::warn!("kdeconnect-cli: stderr = {}", &stderr.trim());
+        log::warn!("kdeconnect/cli: stderr = {}", &stderr.trim());
     }
 
     let stdout = common::slice_to_string(output.stdout.as_slice());
     if !stdout.is_empty() {
-        log::trace!("kdeconnect-cli: stdout = {}", &stdout.trim());
+        log::trace!("kdeconnect/cli: stdout = {}", &stdout.trim());
     }
 
     Ok(stdout)
@@ -251,8 +254,9 @@ mod std_fmt_impls {
 
             write!(
                 f,
-                "KDE Connect Notifier: threshold = {}%, device_names = {}",
-                self.threshold, device_names,
+                "KDE Connect Notifier: \
+                threshold = {}%, device_names = {device_names}",
+                self.threshold,
             )
         }
     }

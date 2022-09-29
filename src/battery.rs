@@ -27,7 +27,6 @@ pub struct Device {
 
 impl Device {
     /// Construct a new `BatteryInfo` instance.
-    #[allow(dead_code)]
     pub fn new(model: &str) -> Result<Self> {
         let battery = find_battery(model)?;
 
@@ -47,7 +46,7 @@ impl Device {
         self.refresh_percentage();
         self.refresh_state();
 
-        log::info!("battery/Device: refreshed state = {}", self);
+        log::info!("battery/refresh: new = {self}");
 
         Ok(self)
     }
@@ -58,7 +57,7 @@ impl Device {
         let percentage = fetch_percentage(&self.battery);
         self.percentage = percentage;
 
-        self.debug(&format!("refreshed percentage = {}%", percentage));
+        log::debug!("battery/refresh_percentage: new = {percentage}%");
 
         percentage
     }
@@ -68,13 +67,9 @@ impl Device {
         let state = fetch_state(&self.battery);
         self.state = state;
 
-        self.debug(&format!("refreshed state = {}", state));
+        log::debug!("battery/refresh_state: new = {state}");
 
         state
-    }
-
-    fn debug(&self, message: &str) {
-        log::debug!("battery/Device {}: {}", self.serial_number, message);
     }
 }
 
@@ -93,8 +88,7 @@ impl TryFrom<battery::Battery> for Device {
         };
 
         log::info!(
-            "battery/Device: device {} created from battery \"{}\"",
-            device,
+            "battery: device {device} created from battery \"{}\"",
             device.serial_number,
         );
 
@@ -109,23 +103,22 @@ impl TryFrom<Option<&str>> for Device {
         match value {
             None => {
                 log::info!(
-                    "battery/Device: model not specified, checking whether device has only one",
+                    "battery: model not specified, \
+                    checking whether device has only one",
                 );
 
                 Self::try_from(one_battery()?)
             }
             Some(value) => {
-                log::debug!(
-                    "battery/Device: searching for battery model \"{}\"",
-                    value
-                );
+                log::debug!("battery: searching for battery model \"{value}\"");
 
-                Self::try_from(find_battery(value)?)
+                Self::new(value)
             }
         }
     }
 }
-/// Print all available `BatteryDevice` instances formatted in a nice and readable way.
+
+/// Print all available `BatteryDevice`s formatted in a readable way.
 ///
 /// Acts as an high level API for the CLI `Batteries` subcommand.
 pub fn print_devices() -> Result<()> {
@@ -148,7 +141,7 @@ fn batteries() -> Result<
     Ok(battery::Manager::new()?.batteries()?)
 }
 
-/// Return `battery::Battery` instance if it's the only one found for the current device.
+/// Return `Battery` instance if it's the only one found for the current device.
 fn one_battery() -> Result<battery::Battery> {
     let mut batteries = batteries()?;
 
@@ -188,15 +181,17 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
 
                         false
                     },
-                    |m| {
-                        log::trace!("battery/find: checking battery \"{}\"", m);
+                    |battery_model| {
+                        log::trace!(
+                            "battery/find: checking battery \"{battery_model}\""
+                        );
 
-                        m == model
+                        battery_model == model
                     },
                 );
 
                 if found {
-                    log::info!("battery/find: battery \"{}\" found", model);
+                    log::info!("battery/find: battery \"{model}\" found");
 
                     return Ok(battery);
                 }
@@ -205,7 +200,7 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
         }
     }
 
-    log::error!("battery/find: battery \"{}\" not found", model);
+    log::error!("battery/find: battery \"{model}\" not found");
 
     Err(error::Battery::NotFound {
         model: error::Model(Some(model.to_owned())),
@@ -220,7 +215,7 @@ fn fetch_percentage(device: &battery::Battery) -> u8 {
         .get::<battery::units::ratio::percent>()
         .trunc() as u8;
 
-    log::trace!("battery: fetched state of charge = {}", percentage);
+    log::trace!("battery: fetched state of charge = {percentage}%");
 
     percentage
 }
@@ -235,7 +230,7 @@ fn fetch_state(device: &battery::Battery) -> State {
         _ => State::Unknown,
     };
 
-    log::trace!("battery: fetched battery state = {}", state);
+    log::trace!("battery: fetched battery state = {state}");
 
     state
 }
@@ -247,7 +242,7 @@ fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
         .ok_or(error::BatteryDevice::Model)?
         .to_owned();
 
-    log::trace!("battery: fetched model = {}", model);
+    log::trace!("battery: fetched model = \"{model}\"");
 
     Ok(model)
 }
@@ -260,7 +255,7 @@ fn fetch_serial_number(device: &battery::Battery) -> DeviceResult<String> {
         .trim()
         .to_owned();
 
-    log::trace!("battery: fetched serial number = {}", serial_number);
+    log::trace!("battery: fetched serial number = {serial_number}");
 
     Ok(serial_number)
 }
@@ -284,7 +279,8 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Battery Device {}: percentage = {}%, state = {}, model = {}",
+                "Battery Device {}: percentage = {}%, \
+                state = {}, model = \"{}\"",
                 self.serial_number, self.percentage, self.state, self.model,
             )
         }
@@ -299,7 +295,7 @@ mod tests {
     fn test_battery_state_charging_display() {
         let state = State::Charging;
 
-        let display = format!("{}", state);
+        let display = format!("{state}");
 
         assert_eq!(display, "Charging");
     }
@@ -308,8 +304,17 @@ mod tests {
     fn test_battery_state_discharging_display() {
         let state = State::Discharging;
 
-        let display = format!("{}", state);
+        let display = format!("{state}");
 
         assert_eq!(display, "Discharging");
+    }
+
+    #[test]
+    fn test_battery_state_unknown_display() {
+        let state = State::Unknown;
+
+        let display = format!("{state}");
+
+        assert_eq!(display, "Unknown");
     }
 }

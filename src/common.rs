@@ -9,8 +9,8 @@ use cached::proc_macro::cached;
 #[cached]
 pub fn warning_message(threshold: u8) -> String {
     format!(
-        "Battery percentage reached the {}% threshold, please unplug your charger",
-        threshold,
+        "Battery percentage reached the {threshold}% threshold, \
+        please unplug your charger",
     )
 }
 
@@ -25,14 +25,17 @@ pub fn warn_on_err<T, E>(prefix: &str, result: Result<T, E>) -> Option<T>
 where
     E: Display,
 {
-    result.map_err(|e| log::warn!("{}: {}", prefix, e)).ok()
+    result.map_err(|e| log::warn!("{prefix}: {e}")).ok()
 }
 
 pub fn print_slice<T>(slice: &[T])
 where
     T: Display,
 {
-    slice.iter().for_each(|item| println!("{}", item));
+    slice
+        .iter()
+        .enumerate()
+        .for_each(|(index, item)| println!("{}. {item}", index + 1));
 }
 
 pub fn format_option<T>(option: &Option<T>) -> String
@@ -41,7 +44,7 @@ where
 {
     match option {
         None => "None".into(),
-        Some(value) => format!("{}", value),
+        Some(value) => format!("{value}"),
     }
 }
 
@@ -69,7 +72,7 @@ pub fn slice_to_string(slice: &[u8]) -> String {
 }
 
 pub fn command(args: &str) -> Result<Output, io::Error> {
-    log::debug!("common/command: sh -c \"{}\"", args);
+    log::debug!("common/command: sh -c \"{args}\"");
 
     Command::new("sh").arg("-c").arg(args).output()
 }
@@ -88,10 +91,13 @@ mod tests {
 
         let result = warning_message(threshold);
 
-        assert_eq!(result, format!(
-            "Battery percentage reached the {}% threshold, please unplug your charger",
-            threshold,
-        ));
+        assert_eq!(
+            result,
+            format!(
+                "Battery percentage reached the {threshold}% threshold, \
+                please unplug your charger",
+            )
+        );
     }
 
     #[test]

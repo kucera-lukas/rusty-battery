@@ -24,14 +24,14 @@ impl Notifier {
         kde_connect_names: Option<HashSet<String>>,
         disable_desktop: bool,
     ) -> Result<Self> {
-        log::info!("notification/Notifier: threshold set to {}%", threshold);
+        log::info!("notification: threshold set to {threshold}%");
 
         let desktop = if disable_desktop {
-            log::info!("notification/Notifier: desktop notifications disabled");
+            log::info!("notification: desktop notifications disabled");
 
             None
         } else {
-            log::info!("notification/Notifier: desktop notifications enabled");
+            log::info!("notification: desktop notifications enabled");
 
             Some(desktop::Notifier::new(threshold))
         };
@@ -40,15 +40,15 @@ impl Notifier {
             kde_connect_names.map_or_else(
                 || {
                     log::info!(
-                    "notification/Notifier: KDE Connect notifications disabled"
-                );
+                        "notification: KDE Connect notifications disabled"
+                    );
 
                     Ok(None)
                 },
                 |names| {
                     log::info!(
-                    "notification/Notifier: KDE Connect notifications enabled"
-                );
+                        "notification: KDE Connect notifications enabled"
+                    );
 
                     Ok(Some(kde_connect::Notifier::new(threshold, names)?))
                 },
@@ -64,28 +64,28 @@ impl Notifier {
     /// Send notification to every supported platform.
     pub fn notify(&mut self) {
         if let Some(desktop) = &mut self.desktop {
-            common::warn_on_err("notification/Notifier", desktop.show());
+            common::warn_on_err("notification", desktop.show());
         }
 
         if let Some(kde_connect) = &self.kde_connect {
-            common::warn_on_err("notification/Notifier", kde_connect.ping());
+            common::warn_on_err("notification", kde_connect.ping());
         }
 
-        log::info!("notification/Notifier: all notifications sent");
+        log::info!("notification: all notifications sent");
     }
 
     /// Remove notification on every supported platform.
     ///
     /// Currently only desktop notifier is supported.
     ///
-    /// KDE Connect notifier is not supported as we can't remove the pinged notification from the
-    /// device.
+    /// KDE Connect notifier is not supported as we can't remove
+    /// the pinged notifications from the device.
     pub fn remove(&mut self) {
         if let Some(desktop) = &mut self.desktop {
             desktop.close();
         }
 
-        log::info!("notification/Notifier: all notifications removed");
+        log::info!("notification: all notifications removed");
     }
 }
 

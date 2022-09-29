@@ -1,7 +1,8 @@
+use std::io::Write;
+
 use chrono::Local;
 use env_logger::Builder;
 use log::LevelFilter;
-use std::io::Write;
 
 /// Initialize `env_logger`.
 pub fn init(verbose: &clap_verbosity_flag::Verbosity) {
@@ -9,7 +10,7 @@ pub fn init(verbose: &clap_verbosity_flag::Verbosity) {
 
     create_builder(level_filter).init();
 
-    log::debug!("logger: initialized with RUST_LOG={}", level_filter);
+    log::debug!("logger: initialized with RUST_LOG={level_filter}");
 }
 
 /// Return `env_logger::Builder`
@@ -40,9 +41,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(
-        expected = "Builder::init should not be called after logger initialized: SetLoggerError(())"
-    )]
+    #[should_panic(expected = "Builder::init should not be called \
+        after logger initialized: SetLoggerError(())")]
     fn test_init_logger_initialized() {
         init(&clap_verbosity_flag::Verbosity::new(0, 0));
         init(&clap_verbosity_flag::Verbosity::new(0, 0));
