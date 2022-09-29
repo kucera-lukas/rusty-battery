@@ -41,8 +41,6 @@ pub enum BatteryDevice {
 
 #[derive(Error, Debug)]
 pub enum Notification {
-    #[error("configuration failure: {kind}")]
-    Config { kind: String },
     #[error("something went wrong with desktop notification: {}", .0)]
     Desktop(#[from] notify_rust::error::Error),
 }

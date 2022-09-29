@@ -14,7 +14,7 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.0.2", features = ["derive"] }
-clap-verbosity-flag = "1.0.1"
+clap-verbosity-flag = "2.0.0"
 battery = "0.7.8"
 notify-rust = "4"
 ctrlc = { version = "3.0", features = ["termination"] }
