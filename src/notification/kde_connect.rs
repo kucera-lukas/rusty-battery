@@ -24,10 +24,10 @@ impl TryFrom<&str> for Device {
         let mut data = value.split_whitespace().map(ToOwned::to_owned);
 
         let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
-        log::trace!("notification/kde_connect: device id = {}", id);
+        log::trace!("notification/kde_connect: device id = {id}");
 
         let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
-        log::trace!("notification/kde_connect: device name = {}", name);
+        log::trace!("notification/kde_connect: device name = {name}");
 
         Ok(Self { id, name })
     }
@@ -136,7 +136,7 @@ fn device_map(list: &str) -> Result<HashMap<String, Device>> {
         .map(|line| {
             let device = Device::try_from(line)?;
 
-            log::debug!("notification/kde_connect: created device {}", device,);
+            log::debug!("notification/kde_connect: created device {device}");
 
             Ok((device.name.clone(), device))
         })
@@ -177,10 +177,10 @@ fn ping(device: &Device, message: &str) -> Result<()> {
         "--ping-msg",
         // needs to be wrapped in quotes
         // otherwise only the first word of the message would be sent
-        &format!("\"{}\"", message),
+        &format!("\"{message}\""),
     ])?;
 
-    log::debug!("notification/kde_connect: {} pinged", &device);
+    log::debug!("notification/kde_connect: {device} pinged");
 
     Ok(())
 }
@@ -205,7 +205,7 @@ fn list_available() -> Result<String> {
 /// Return stdout data.
 fn execute(args: &[&str]) -> Result<String> {
     let output =
-        common::command(&format!("{} {}", "kdeconnect-cli", args.join(" ")))?;
+        common::command(&format!("kdeconnect-cli {}", args.join(" ")))?;
 
     let stderr = common::slice_to_string(output.stderr.as_slice());
     if !stderr.is_empty() {
@@ -254,8 +254,9 @@ mod std_fmt_impls {
 
             write!(
                 f,
-                "KDE Connect Notifier: threshold = {}%, device_names = {}",
-                self.threshold, device_names,
+                "KDE Connect Notifier: \
+                threshold = {}%, device_names = {device_names}",
+                self.threshold,
             )
         }
     }

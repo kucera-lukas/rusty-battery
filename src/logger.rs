@@ -10,7 +10,7 @@ pub fn init(verbose: &clap_verbosity_flag::Verbosity) {
 
     create_builder(level_filter).init();
 
-    log::debug!("logger: initialized with RUST_LOG={}", level_filter);
+    log::debug!("logger: initialized with RUST_LOG={level_filter}");
 }
 
 /// Return `env_logger::Builder`

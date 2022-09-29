@@ -24,7 +24,7 @@ impl Notifier {
         kde_connect_names: Option<HashSet<String>>,
         disable_desktop: bool,
     ) -> Result<Self> {
-        log::info!("notification: threshold set to {}%", threshold);
+        log::info!("notification: threshold set to {threshold}%");
 
         let desktop = if disable_desktop {
             log::info!("notification: desktop notifications disabled");

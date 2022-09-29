@@ -82,7 +82,7 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match &self.0 {
                 None => write!(f, "None"),
-                Some(model) => write!(f, "{}", model),
+                Some(model) => write!(f, "{model}"),
             }
         }
     }

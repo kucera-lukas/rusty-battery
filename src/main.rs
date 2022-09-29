@@ -32,7 +32,7 @@ fn main() {
     process::exit(match run_app() {
         Ok(_) => 0,
         Err(e) => {
-            log::error!("{}", e);
+            log::error!("{e}");
             1
         }
     })

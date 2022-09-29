@@ -81,9 +81,7 @@ impl Notifier {
 fn create_notification(summary: &str, body: &str) -> Notification {
     log::trace!(
         "notification/desktop: creating notification with \
-        summary = \"{}\" and body = \"{}\"",
-        summary,
-        body,
+        summary = \"{summary}\" and body = \"{body}\"",
     );
 
     Notification::new()

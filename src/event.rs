@@ -16,8 +16,7 @@ pub fn loop_(
     refresh_secs: u64,
 ) -> Result<()> {
     log::info!(
-        "event: starting loop with {} seconds refresh interval",
-        refresh_secs,
+        "event: starting loop with {refresh_secs} seconds refresh interval"
     );
 
     let refresh_duration = time::Duration::from_secs(refresh_secs);
@@ -48,7 +47,7 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
         log::info!("event: got signal, exiting...");
 
         shutdown_sender.send(()).unwrap_or_else(|e| {
-            log::error!("event: {}", e);
+            log::error!("event: {e}");
 
             process::exit(1);
         });
@@ -80,14 +79,14 @@ fn wait_and_refresh(
         }
         Err(e) => match e {
             mpsc::RecvTimeoutError::Timeout => {
-                log::trace!("event: {}", e);
+                log::trace!("event: {e}");
 
                 battery_device.refresh()?;
 
                 Ok(())
             }
             mpsc::RecvTimeoutError::Disconnected => {
-                log::error!("event: {}", e);
+                log::error!("event: {e}");
 
                 Err(error::Error::System(error::System::RecvTimeout(e)))
             }

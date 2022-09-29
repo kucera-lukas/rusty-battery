@@ -46,7 +46,7 @@ impl Device {
         self.refresh_percentage();
         self.refresh_state();
 
-        log::info!("battery/refresh: new = {}", self);
+        log::info!("battery/refresh: new = {self}");
 
         Ok(self)
     }
@@ -88,8 +88,7 @@ impl TryFrom<battery::Battery> for Device {
         };
 
         log::info!(
-            "battery: device {} created from battery \"{}\"",
-            device,
+            "battery: device {device} created from battery \"{}\"",
             device.serial_number,
         );
 
@@ -111,10 +110,7 @@ impl TryFrom<Option<&str>> for Device {
                 Self::try_from(one_battery()?)
             }
             Some(value) => {
-                log::debug!(
-                    "battery: searching for battery model \"{}\"",
-                    value,
-                );
+                log::debug!("battery: searching for battery model \"{value}\"");
 
                 Self::new(value)
             }
@@ -187,8 +183,7 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
                     },
                     |battery_model| {
                         log::trace!(
-                            "battery/find: checking battery \"{}\"",
-                            battery_model
+                            "battery/find: checking battery \"{battery_model}\""
                         );
 
                         battery_model == model
@@ -196,7 +191,7 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
                 );
 
                 if found {
-                    log::info!("battery/find: battery \"{}\" found", model);
+                    log::info!("battery/find: battery \"{model}\" found");
 
                     return Ok(battery);
                 }
@@ -205,7 +200,7 @@ fn find_battery(model: &str) -> Result<battery::Battery> {
         }
     }
 
-    log::error!("battery/find: battery \"{}\" not found", model);
+    log::error!("battery/find: battery \"{model}\" not found");
 
     Err(error::Battery::NotFound {
         model: error::Model(Some(model.to_owned())),
@@ -220,7 +215,7 @@ fn fetch_percentage(device: &battery::Battery) -> u8 {
         .get::<battery::units::ratio::percent>()
         .trunc() as u8;
 
-    log::trace!("battery: fetched state of charge = {}%", percentage);
+    log::trace!("battery: fetched state of charge = {percentage}%");
 
     percentage
 }
@@ -235,7 +230,7 @@ fn fetch_state(device: &battery::Battery) -> State {
         _ => State::Unknown,
     };
 
-    log::trace!("battery: fetched battery state = {}", state);
+    log::trace!("battery: fetched battery state = {state}");
 
     state
 }
@@ -247,7 +242,7 @@ fn fetch_model(device: &battery::Battery) -> DeviceResult<String> {
         .ok_or(error::BatteryDevice::Model)?
         .to_owned();
 
-    log::trace!("battery: fetched model = \"{}\"", model);
+    log::trace!("battery: fetched model = \"{model}\"");
 
     Ok(model)
 }
@@ -260,7 +255,7 @@ fn fetch_serial_number(device: &battery::Battery) -> DeviceResult<String> {
         .trim()
         .to_owned();
 
-    log::trace!("battery: fetched serial number = {}", serial_number);
+    log::trace!("battery: fetched serial number = {serial_number}");
 
     Ok(serial_number)
 }
@@ -300,7 +295,7 @@ mod tests {
     fn test_battery_state_charging_display() {
         let state = State::Charging;
 
-        let display = format!("{}", state);
+        let display = format!("{state}");
 
         assert_eq!(display, "Charging");
     }
@@ -309,7 +304,7 @@ mod tests {
     fn test_battery_state_discharging_display() {
         let state = State::Discharging;
 
-        let display = format!("{}", state);
+        let display = format!("{state}");
 
         assert_eq!(display, "Discharging");
     }
@@ -318,7 +313,7 @@ mod tests {
     fn test_battery_state_unknown_display() {
         let state = State::Unknown;
 
-        let display = format!("{}", state);
+        let display = format!("{state}");
 
         assert_eq!(display, "Unknown");
     }
