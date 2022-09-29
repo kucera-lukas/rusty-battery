@@ -27,7 +27,6 @@ pub struct Device {
 
 impl Device {
     /// Construct a new `BatteryInfo` instance.
-    #[allow(dead_code)]
     pub fn new(model: &str) -> Result<Self> {
         let battery = find_battery(model)?;
 
@@ -68,7 +67,7 @@ impl Device {
         let state = fetch_state(&self.battery);
         self.state = state;
 
-        log::debug!("battery/refresh_state: new = {state}%");
+        log::debug!("battery/refresh_state: new = {state}");
 
         state
     }
@@ -117,7 +116,7 @@ impl TryFrom<Option<&str>> for Device {
                     value,
                 );
 
-                Self::try_from(find_battery(value)?)
+                Self::new(value)
             }
         }
     }
