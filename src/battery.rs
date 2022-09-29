@@ -47,7 +47,7 @@ impl Device {
         self.refresh_percentage();
         self.refresh_state();
 
-        log::info!("battery: refreshed state = {}", self);
+        log::info!("battery/refresh: new = {}", self);
 
         Ok(self)
     }
@@ -58,7 +58,7 @@ impl Device {
         let percentage = fetch_percentage(&self.battery);
         self.percentage = percentage;
 
-        self.debug(&format!("refreshed percentage = {}%", percentage));
+        log::debug!("battery/refresh_percentage: new = {percentage}%");
 
         percentage
     }
@@ -68,13 +68,9 @@ impl Device {
         let state = fetch_state(&self.battery);
         self.state = state;
 
-        self.debug(&format!("refreshed state = {}", state));
+        log::debug!("battery/refresh_state: new = {state}%");
 
         state
-    }
-
-    fn debug(&self, message: &str) {
-        log::debug!("battery: \"{}\" {}", self.serial_number, message);
     }
 }
 
