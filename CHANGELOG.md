@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.4.0...v0.5.0) (2022-09-30)
+
+### Features
+
+- better input validation ([#132](https://github.com/kucera-lukas/rusty-battery/issues/132)) ([8ba5794](https://github.com/kucera-lukas/rusty-battery/commit/8ba57946ff375c14369352686b41b90e31b5ad85))
+- migrate to clap v4 ([#133](https://github.com/kucera-lukas/rusty-battery/issues/133)) ([48cc540](https://github.com/kucera-lukas/rusty-battery/commit/48cc540086a5ca947b69757cd96c8085ec5528ec))
+- remove notification on SIGINT, SIGTERM and SIGHUP ([#130](https://github.com/kucera-lukas/rusty-battery/issues/130)) ([64a4f66](https://github.com/kucera-lukas/rusty-battery/commit/64a4f66188aa80a3e2e3d51828e858ed842fc7e3))
+- warn about missing kde connect devices on startup ([#128](https://github.com/kucera-lukas/rusty-battery/issues/128)) ([2ba1c0f](https://github.com/kucera-lukas/rusty-battery/commit/2ba1c0f1827c12700ed4ff356323ce5f9c75763f))
+
 ## [0.4.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.3.0...v0.4.0) (2022-09-27)
 
 ### Features
