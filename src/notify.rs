@@ -1,11 +1,8 @@
 use std::convert::TryFrom;
 use std::sync::mpsc;
 
-use clap::error::ErrorKind;
-use clap::CommandFactory;
-
 use crate::battery::Device;
-use crate::{cli, common, error, event, notification};
+use crate::{common, error, event, notification};
 
 pub fn notify(
     threshold: u8,
@@ -20,7 +17,7 @@ pub fn notify(
         refresh_secs,
         &kde_connect_names,
         disable_desktop,
-    );
+    )?;
 
     let mut battery_device = Device::try_from(model)?;
     let mut notifier = notification::Notifier::new(
@@ -49,14 +46,30 @@ fn validate_input(
     _refresh_secs: u64,
     kde_connect_names: &Option<Vec<String>>,
     disable_desktop: bool,
-) {
+) -> error::Result<()> {
     if disable_desktop && kde_connect_names.is_none() {
-        let mut cmd = cli::Cli::command();
-
-        cmd.error(
-            ErrorKind::ValueValidation,
-            "Both desktop and KDE connect notifications are disabled",
-        )
-        .exit();
+        return Err(error::Error::from(error::Notification::Config {
+            kind: "both desktop and KDE connect can't be disabled".into(),
+        }));
     };
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_notify_input_notifications_disabled() {
+        let result = notify(0, None, 0, None, true);
+
+        assert!(result.is_err());
+        result.unwrap_or_else(|e| {
+            assert!(matches!(
+                e,
+                error::Error::Notification(error::Notification::Config { .. })
+            ));
+        });
+    }
 }
