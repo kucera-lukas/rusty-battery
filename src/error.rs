@@ -1,20 +1,25 @@
+use std::fmt::Debug;
 use std::io;
 use std::result;
 use std::sync::mpsc;
 
+use clap::error::ErrorKind;
+use clap::CommandFactory;
 use thiserror::Error;
+
+use crate::cli;
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("something went wrong with battery information: {}", .0)]
+    #[error("Battery: {}", .0)]
     Battery(#[from] Battery),
-    #[error("something went wrong with KDE Connect: {}", .0)]
+    #[error("KDE Connect: {}", .0)]
     KDEConnect(#[from] KDEConnect),
-    #[error("something went wrong with notification: {}", .0)]
+    #[error("Notification: {}", .0)]
     Notification(#[from] Notification),
-    #[error("something went wrong with the system: {}", .0)]
+    #[error("System: {}", .0)]
     System(#[from] System),
 }
 
@@ -23,19 +28,19 @@ pub struct Model(pub Option<String>);
 
 #[derive(Error, Debug)]
 pub enum Battery {
-    #[error("battery routine failure: {}", .0)]
+    #[error("routine failure: {}", .0)]
     Routine(#[from] battery::Error),
-    #[error("battery device not found: model = \"{model}\"")]
+    #[error("device not found: model = \"{model}\"")]
     NotFound { model: Model },
-    #[error("battery device error: {}", .0)]
+    #[error("device: {}", .0)]
     Device(#[from] BatteryDevice),
 }
 
 #[derive(Error, Debug)]
 pub enum BatteryDevice {
-    #[error("failed to retrieve battery model")]
+    #[error("failed to retrieve model")]
     Model,
-    #[error("failed to retrieve battery serial number")]
+    #[error("failed to retrieve serial number")]
     SerialNumber,
 }
 
@@ -43,34 +48,40 @@ pub enum BatteryDevice {
 pub enum Notification {
     #[error("configuration failure: {kind}")]
     Config { kind: String },
-    #[error("something went wrong with desktop notification: {}", .0)]
+    #[error("desktop: {}", .0)]
     Desktop(#[from] notify_rust::error::Error),
 }
 
 #[derive(Error, Debug)]
 pub enum KDEConnect {
-    #[error("KDE Connect CLI is not installed on this system: {}", .0)]
+    #[error("CLI is not installed: {}", .0)]
     Cli(#[from] io::Error),
-    #[error("KDE Connect device error: {}", .0)]
+    #[error("device: {}", .0)]
     Device(#[from] KDEConnectDevice),
 }
 
 #[derive(Error, Debug)]
 pub enum KDEConnectDevice {
-    #[error("KDE Connect device not found: name = {name}")]
+    #[error("not found: name = {name}")]
     NotFound { name: String },
-    #[error("failed to retrieve device id")]
+    #[error("failed to retrieve id")]
     ID,
-    #[error("failed to retrieve device name")]
+    #[error("failed to retrieve name")]
     Name,
 }
 
 #[derive(Error, Debug)]
 pub enum System {
-    #[error("signal handler failure: {}", .0)]
+    #[error("signal handler: {}", .0)]
     Handler(#[from] ctrlc::Error),
-    #[error("receive timeout error: {}", .0)]
+    #[error("receive timeout: {}", .0)]
     RecvTimeout(#[from] mpsc::RecvTimeoutError),
+}
+
+pub fn handle(e: Error) -> ! {
+    let mut cmd = cli::Cli::command();
+
+    cmd.error(ErrorKind::Io, e).exit()
 }
 
 mod std_fmt_impls {

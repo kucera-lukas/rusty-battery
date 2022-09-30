@@ -4,14 +4,14 @@ use crate::parser;
 
 /// Tool to help you care about your device's battery health.
 #[derive(Parser, Debug)]
-#[clap(author, version, about)]
-#[clap(propagate_version = true)]
+#[command(author, version, about)]
+#[command(propagate_version = true)]
 pub struct Cli {
     /// Control log level with `--verbose` and `--quiet` flags.
     #[clap(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity,
 
-    #[clap(subcommand)]
+    #[command(subcommand)]
     pub cmd: Command,
 }
 
@@ -26,7 +26,7 @@ pub enum Command {
         /// the charger should be unplugged.
         ///
         /// [minimum: 0] [maximum: 100]
-        #[clap(
+        #[arg(
         short,
         long,
         value_parser = parser::threshold,
@@ -42,7 +42,7 @@ pub enum Command {
         /// Otherwise, please use the `batteries` subcommand
         /// to get a list of all battery devices to get the model of the
         /// wanted battery device which should be monitored.
-        #[clap(short, long, value_parser)]
+        #[arg(short, long)]
         model: Option<String>,
 
         /// Number of seconds to wait before refreshing battery device data
@@ -50,7 +50,7 @@ pub enum Command {
         /// After every battery device refresh, its data will be checked.
         /// Notifications will be sent everytime they should be, based on the
         /// new refreshed battery device data.
-        #[clap(long, value_parser, default_value_t = 30)]
+        #[clap(long, default_value_t = 30)]
         refresh_secs: u64,
 
         /// KDE Connect device names
@@ -59,7 +59,7 @@ pub enum Command {
         ///
         /// If this value is empty,
         /// all of the KDE Connect devices will be pinged.
-        #[clap(long = "kde-connect", value_parser, min_values = 0)]
+        #[arg(long = "kde-connect", num_args = 0..=255)]
         kde_connect_names: Option<Vec<String>>,
 
         /// Disable desktop notifications
@@ -67,7 +67,7 @@ pub enum Command {
         /// Specify this flag if you don't want desktop notifications
         /// to be shown whenever the chosen battery percentage exceeds the
         /// given threshold.
-        #[clap(long, value_parser)]
+        #[arg(long)]
         disable_desktop: bool,
     },
     /// List all available batteries of the current device.
