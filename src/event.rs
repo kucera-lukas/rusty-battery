@@ -2,16 +2,16 @@ use std::sync::mpsc;
 use std::time;
 use std::{process, result};
 
-use crate::battery;
-use crate::error;
+use crate::device::BatteryState;
 use crate::notification::Notifier;
+use crate::{device, error};
 
 type Result<T> = result::Result<T, error::Error>;
 
 /// Loop infinitely processing battery charge threshold events.
 pub fn loop_(
     shutdown_receiver: &mpsc::Receiver<()>,
-    battery_device: &mut battery::Device,
+    battery_device: &mut device::Battery,
     notifier: &mut Notifier,
     refresh_secs: u64,
 ) -> Result<()> {
@@ -23,7 +23,7 @@ pub fn loop_(
 
     loop {
         if battery_device.percentage >= notifier.threshold
-            && battery_device.state == battery::State::Charging
+            && battery_device.state == BatteryState::Charging
         {
             notifier.notify();
         } else {
@@ -67,7 +67,7 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
 /// If the other half of the `Receiver` channel gets disconnected return error.
 fn wait_and_refresh(
     shutdown_receiver: &mpsc::Receiver<()>,
-    battery_device: &mut battery::Device,
+    battery_device: &mut device::Battery,
     notifier: &mut Notifier,
     refresh_duration: time::Duration,
 ) -> Result<()> {

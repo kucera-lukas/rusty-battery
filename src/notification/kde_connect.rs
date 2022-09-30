@@ -1,39 +1,14 @@
-use std::collections::{HashMap, HashSet};
-use std::convert::TryFrom;
+use std::collections::HashSet;
 use std::result;
 
 use crate::common;
+use crate::device::{kde_connect, KDEConnect};
 use crate::error;
+use crate::notification::PlatformNotifier;
 
 type Result<T> = result::Result<T, error::KDEConnect>;
-type DeviceResult<T> = result::Result<T, error::KDEConnectDevice>;
 
-/// KDE Connect device representation.
-#[derive(Clone, Debug)]
-pub struct Device {
-    /// ID of the device
-    id: String,
-    /// Name of the device
-    name: String,
-}
-
-impl TryFrom<&str> for Device {
-    type Error = error::KDEConnectDevice;
-
-    fn try_from(value: &str) -> result::Result<Self, Self::Error> {
-        let mut data = value.split_whitespace().map(ToOwned::to_owned);
-
-        let id: String = data.next().ok_or(error::KDEConnectDevice::ID)?;
-        log::trace!("notification/kde_connect: device id = {id}");
-
-        let name: String = data.next().ok_or(error::KDEConnectDevice::Name)?;
-        log::trace!("notification/kde_connect: device name = {name}");
-
-        Ok(Self { id, name })
-    }
-}
-
-/// KDE Connect notifier.
+/// KDE Connect Notifier.
 #[derive(Debug)]
 pub struct Notifier {
     /// Charge threshold used to create warning message.
@@ -44,8 +19,24 @@ pub struct Notifier {
     device_names: Option<HashSet<String>>,
 }
 
+impl PlatformNotifier for Notifier {
+    type Error = error::KDEConnect;
+
+    fn notify(&mut self) -> result::Result<(), Self::Error> {
+        self.ping()?;
+
+        Ok(())
+    }
+
+    fn remove(&mut self) -> result::Result<(), Self::Error> {
+        log::trace!("notification/kde_connect: remove noop");
+
+        Ok(())
+    }
+}
+
 impl Notifier {
-    /// Create a new `Notifier` instance.
+    /// Create a new `KDEConnect` instance.
     pub fn new(threshold: u8, device_names: HashSet<String>) -> Result<Self> {
         let notifier = Self {
             threshold,
@@ -74,14 +65,9 @@ impl Notifier {
     }
 
     /// Ping all available `Device` instances.
-    pub fn ping(&self) -> Result<()> {
+    fn ping(&self) -> Result<()> {
         self.find_available()?.iter().try_for_each(|device| {
-            log::trace!(
-                "notification/kde_connect: pinging device {}",
-                device.id
-            );
-
-            ping(device, &common::warning_message(self.threshold))
+            device.ping(&common::warning_message(self.threshold))
         })?;
 
         log::debug!("notification/kde_connect: available devices pinged");
@@ -93,148 +79,21 @@ impl Notifier {
     ///
     /// If no `device_names` were specified at the creation,
     /// all available devices will be returned.
-    fn find_available(&self) -> Result<Vec<Device>> {
-        let mut devices = available_devices_map()?;
+    fn find_available(&self) -> Result<Vec<KDEConnect>> {
+        let mut devices = kde_connect::map::available()?;
 
         Ok(match &self.device_names {
             None => devices.into_values().collect(),
-            Some(names) => find_devices(&mut devices, names),
+            Some(names) => kde_connect::find::all(&mut devices, names),
         })
     }
-}
-
-/// Print all available `Device` instances formatted in a nice and readable way.
-///
-/// Acts as an high level API for the CLI `KDEConnectDevices` subcommand.
-pub fn print_devices() -> Result<()> {
-    common::print_slice(
-        &all_devices_map()?.into_values().collect::<Vec<Device>>(),
-    );
-
-    Ok(())
-}
-
-/// Return a mapping between name and its corresponding `Device` instance.
-///
-/// `Device`s are collected via the `list-devices` KDE Connect CLI option.
-fn all_devices_map() -> Result<HashMap<String, Device>> {
-    device_map(&list_devices()?)
-}
-
-/// Return a mapping between name and its corresponding `Device` instance.
-///
-/// `Devices` are collected via the `list-available` KDE Connect CLI option.
-fn available_devices_map() -> Result<HashMap<String, Device>> {
-    device_map(&list_available()?)
-}
-
-/// Return a mapping between name and the corresponding `Device` instance.
-///
-/// Data is parsed from the given string.
-fn device_map(list: &str) -> Result<HashMap<String, Device>> {
-    list.lines()
-        .map(|line| {
-            let device = Device::try_from(line)?;
-
-            log::debug!("notification/kde_connect: created device {device}");
-
-            Ok((device.name.clone(), device))
-        })
-        .collect()
-}
-
-/// Search the given `HashMap` for devices with a name in the given `HashSet`.
-fn find_devices(
-    devices: &mut HashMap<String, Device>,
-    names: &HashSet<String>,
-) -> Vec<Device> {
-    names
-        .iter()
-        .filter_map(|name| {
-            common::warn_on_err(
-                "notification/kde_connect",
-                find_device(devices, name),
-            )
-        })
-        .collect()
-}
-
-/// Search the given `HashMap` for a device with the given name.
-fn find_device(
-    devices: &mut HashMap<String, Device>,
-    name: &str,
-) -> DeviceResult<Device> {
-    devices
-        .remove(name)
-        .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })
-}
-
-/// Ping the given `Device` via the KDE Connect CLI `ping-msg` option.
-fn ping(device: &Device, message: &str) -> Result<()> {
-    execute(&[
-        "--device",
-        &device.id,
-        "--ping-msg",
-        // needs to be wrapped in quotes
-        // otherwise only the first word of the message would be sent
-        &format!("\"{message}\""),
-    ])?;
-
-    log::debug!("notification/kde_connect: {device} pinged");
-
-    Ok(())
-}
-
-/// Return stdout of the `list-devices` KDE Connect CLI option.
-fn list_devices() -> Result<String> {
-    log::debug!("notification/kde_connect: listing all devices");
-
-    execute(&["--list-devices", "--id-name-only"])
-}
-
-/// Return stdout of the `list-available` KDE Connect CLI option.
-fn list_available() -> Result<String> {
-    log::debug!("notification/kde_connect: listing all available devices");
-
-    execute(&["--list-available", "--id-name-only"])
-}
-
-/// Execute KDE Connect CLI command with the given arguments.
-///
-/// Warn if any data is passed into stderr.
-/// Return stdout data.
-fn execute(args: &[&str]) -> Result<String> {
-    let output =
-        common::command(&format!("kdeconnect-cli {}", args.join(" ")))?;
-
-    let stderr = common::slice_to_string(output.stderr.as_slice());
-    if !stderr.is_empty() {
-        log::warn!("kdeconnect/cli: stderr = {}", &stderr.trim());
-    }
-
-    let stdout = common::slice_to_string(output.stdout.as_slice());
-    if !stdout.is_empty() {
-        log::trace!("kdeconnect/cli: stdout = {}", &stdout.trim());
-    }
-
-    Ok(stdout)
 }
 
 mod std_fmt_impls {
     use std::borrow::Borrow;
     use std::fmt;
 
-    use super::{Device, Notifier};
-
-    impl fmt::Display for Device {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(
-                f,
-                "KDE Connect device: name = {}, id = {}",
-                self.name, self.id,
-            )
-        }
-    }
+    use super::Notifier;
 
     impl fmt::Display for Notifier {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -260,4 +119,4 @@ mod std_fmt_impls {
             )
         }
     }
-}
+} // std_fmt_impls
