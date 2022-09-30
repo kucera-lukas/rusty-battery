@@ -61,7 +61,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_validate_notify_input_notifications_disabled() {
+    fn test_notify_notifications_disabled_kde_disabled() {
         let result = notify(0, None, 0, None, true);
 
         assert!(result.is_err());
@@ -71,5 +71,65 @@ mod tests {
                 error::Error::Notification(error::Notification::Config { .. })
             ));
         });
+    }
+
+    #[test]
+    fn test_validate_validate_input_desktop_enabled_kde_disabled() {
+        let result = validate_input(0, None, 0, &None, false);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_validate_input_desktop_enabled_kde_empty() {
+        let result = validate_input(0, None, 0, &Some(vec![]), false);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_validate_input_desktop_enabled_kde_populated() {
+        let result = validate_input(
+            0,
+            None,
+            0,
+            &Some(vec!["a".into(), "5".into()]),
+            false,
+        );
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_validate_input_desktop_disabled_kde_disabled() {
+        let result = validate_input(0, None, 0, &None, true);
+
+        assert!(result.is_err());
+        result.unwrap_or_else(|e| {
+            assert!(matches!(
+                e,
+                error::Error::Notification(error::Notification::Config { .. }),
+            ));
+        });
+    }
+
+    #[test]
+    fn test_validate_validate_input_desktop_disabled_kde_empty() {
+        let result = validate_input(0, None, 0, &Some(vec![]), true);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_validate_validate_input_desktop_disabled_kde_populated() {
+        let result = validate_input(
+            0,
+            None,
+            0,
+            &Some(vec!["a".into(), "5".into()]),
+            true,
+        );
+
+        assert!(result.is_ok());
     }
 }
