@@ -20,14 +20,7 @@ impl KDEConnect {
     pub fn ping(&self, message: &str) -> Result<()> {
         log::trace!("device/kde_connect: pinging {}", self.id);
 
-        execute(&[
-            "--device",
-            &self.id,
-            "--ping-msg",
-            // needs to be wrapped in quotes
-            // otherwise only the first word of the message would be sent
-            &format!("\"{message}\""),
-        ])?;
+        execute(&["--device", &self.id, "--ping-msg", message])?;
 
         log::debug!("device/kde_connect: {self} pinged");
 

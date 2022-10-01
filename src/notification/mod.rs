@@ -3,11 +3,13 @@ use std::result;
 
 pub use desktop::Notifier as DesktopNotifier;
 pub use kde_connect::Notifier as KDEConnectNotifier;
+pub use message::Message;
 
 use crate::error;
 
 mod desktop;
 mod kde_connect;
+mod message;
 mod operation;
 
 type Result<T> = result::Result<T, error::Error>;
@@ -15,13 +17,9 @@ type Result<T> = result::Result<T, error::Error>;
 pub trait PlatformNotifier {
     type Error: std::error::Error;
 
-    fn notify(&mut self) -> result::Result<(), Self::Error> {
-        Ok(())
-    }
+    fn notify(&mut self, message: &Message) -> result::Result<(), Self::Error>;
 
-    fn remove(&mut self) -> result::Result<(), Self::Error> {
-        Ok(())
-    }
+    fn remove(&mut self) -> result::Result<(), Self::Error>;
 }
 
 #[derive(Debug)]
@@ -48,7 +46,7 @@ impl Notifier {
         } else {
             log::info!("notification: desktop notifications enabled");
 
-            Some(DesktopNotifier::new(threshold))
+            Some(DesktopNotifier::new())
         };
 
         let kde_connect: Result<Option<KDEConnectNotifier>> = kde_connect_names
@@ -65,7 +63,7 @@ impl Notifier {
                         "notification: KDE Connect notifications enabled"
                     );
 
-                    Ok(Some(KDEConnectNotifier::new(threshold, names)?))
+                    Ok(Some(KDEConnectNotifier::new(names)?))
                 },
             );
 
@@ -77,9 +75,9 @@ impl Notifier {
     }
 
     /// Send notification to every supported platform.
-    pub fn notify(&mut self) {
-        operation::notify(&mut self.desktop);
-        operation::notify(&mut self.kde_connect);
+    pub fn notify(&mut self, message: &Message) {
+        operation::notify(&mut self.desktop, message);
+        operation::notify(&mut self.kde_connect, message);
 
         log::info!("notification: all sent");
     }

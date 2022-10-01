@@ -1,24 +1,25 @@
 use std::result;
 
-use notify_rust::{Notification, NotificationHandle, Urgency};
+use notify_rust::{Notification, NotificationHandle, Timeout, Urgency};
 
-use crate::common;
 use crate::error;
-use crate::notification::PlatformNotifier;
+use crate::notification::{Message, PlatformNotifier};
+
+const APP_NAME: &str = "rusty-battery";
+const ICON: &str = "battery";
 
 type Result<T> = result::Result<T, error::Notification>;
 
 #[derive(Debug)]
 pub struct Notifier {
-    threshold: u8,
     handle: Option<NotificationHandle>,
 }
 
 impl PlatformNotifier for Notifier {
     type Error = error::Notification;
 
-    fn notify(&mut self) -> result::Result<(), Self::Error> {
-        self.show()?;
+    fn notify(&mut self, message: &Message) -> result::Result<(), Self::Error> {
+        self.show(message)?;
 
         Ok(())
     }
@@ -32,11 +33,8 @@ impl PlatformNotifier for Notifier {
 
 impl Notifier {
     /// Return a new `DesktopNotifier` instance.
-    pub const fn new(threshold: u8) -> Self {
-        Self {
-            threshold,
-            handle: None,
-        }
+    pub const fn new() -> Self {
+        Self { handle: None }
     }
 
     /// Show a desktop notification that the battery threshold has been reached.
@@ -49,18 +47,24 @@ impl Notifier {
     /// created one via it's `update` method.
     ///
     /// Return a reference to the current `NotificationHandle`.
-    fn show(&mut self) -> Result<&NotificationHandle> {
+    fn show(&mut self, message: &Message) -> Result<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
+            handle.summary(&message.summary);
+            handle.body(&message.body);
+
             handle.update();
 
             log::debug!("notification/desktop: cached notification shown");
         } else {
-            self.handle = Some(self.notification().show()?);
+            self.handle = Some(create_notification(message).show()?);
 
             log::debug!("notification/desktop: notification shown and cached");
         }
 
-        Ok(self.handle.as_ref().expect("cached notification missing"))
+        Ok(match self.handle.as_ref() {
+            Some(handle) => handle,
+            None => unreachable!(),
+        })
     }
 
     /// Close the current desktop notification if it exists.
@@ -84,29 +88,23 @@ impl Notifier {
             },
         )
     }
-
-    /// Create a new desktop notification with the battery charge threshold.
-    fn notification(&self) -> Notification {
-        create_notification(
-            "Charge limit warning",
-            &common::warning_message(self.threshold),
-        )
-    }
 }
 
 /// Create a new desktop notification with the given summary and body.
-fn create_notification(summary: &str, body: &str) -> Notification {
+fn create_notification(message: &Message) -> Notification {
     log::trace!(
         "notification/desktop: creating notification with \
-        summary = \"{summary}\" and body = \"{body}\"",
+        summary = \"{}\" and body = \"{}\"",
+        message.summary,
+        message.body,
     );
 
     Notification::new()
-        .appname("rusty-battery")
-        .summary(summary)
-        .body(body)
-        .icon("battery")
-        .timeout(0)
+        .appname(APP_NAME)
+        .summary(&message.summary)
+        .body(&message.body)
+        .icon(ICON)
+        .timeout(Timeout::Never)
         .urgency(Urgency::Critical)
         .finalize()
 }
@@ -124,8 +122,7 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Desktop Notifier: threshold = {}%, handle = {}",
-                self.threshold,
+                "Desktop Notifier: handle = {}",
                 common::format_option(
                     &self.handle.as_ref().map(NotificationHandle::id)
                 )
@@ -138,10 +135,11 @@ mod std_fmt_impls {
 mod tests {
     use std::collections::HashSet;
 
-    use notify_rust::{Hint, Timeout};
+    use notify_rust::Hint;
 
     use super::*;
 
+    #[allow(dead_code)]
     fn assert_notification(
         notification: &Notification,
         summary: &str,
@@ -150,53 +148,27 @@ mod tests {
         let mut hints = HashSet::new();
         hints.insert(Hint::Urgency(Urgency::Critical));
 
-        assert_eq!(notification.appname, "rusty-battery");
+        assert_eq!(notification.appname, APP_NAME);
         assert_eq!(notification.summary, summary);
         assert_eq!(notification.body, body);
-        assert_eq!(notification.icon, "battery");
+        assert_eq!(notification.icon, ICON);
         assert_eq!(notification.timeout, Timeout::Never);
         assert_eq!(notification.hints, hints);
     }
 
     #[test]
-    fn test_desktop_notifier_empty_handle() {
-        let notifier = Notifier::new(0);
+    fn test_notifier_empty_handle() {
+        let notifier = Notifier::new();
 
         assert!(notifier.handle.is_none());
     }
 
     #[test]
-    fn test_desktop_notifier_notification() {
-        let notifier = Notifier::new(0);
-        let notification = notifier.notification();
-
-        assert_notification(
-            &notification,
-            "Charge limit warning",
-            &format!(
-                "Battery percentage reached the {}% threshold, \
-                please unplug your charger",
-                notifier.threshold,
-            ),
-        );
-    }
-
-    #[test]
-    fn test_create_notification() {
-        let summary = "test-summary";
-        let body = "test-body";
-
-        let notification = create_notification(summary, body);
-
-        assert_notification(&notification, summary, body);
-    }
-
-    #[test]
     fn test_notifier_display_none_handle() {
-        let notifier = Notifier::new(0);
+        let notifier = Notifier::new();
 
         let result = notifier.to_string();
 
-        assert_eq!(result, "Desktop Notifier: threshold = 0%, handle = None");
+        assert_eq!(result, "Desktop Notifier: handle = None");
     }
 } // tests

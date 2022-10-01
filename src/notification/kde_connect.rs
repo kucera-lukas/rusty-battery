@@ -4,15 +4,13 @@ use std::result;
 use crate::common;
 use crate::device::{kde_connect, KDEConnect};
 use crate::error;
-use crate::notification::PlatformNotifier;
+use crate::notification::{Message, PlatformNotifier};
 
 type Result<T> = result::Result<T, error::KDEConnect>;
 
 /// KDE Connect Notifier.
 #[derive(Debug)]
 pub struct Notifier {
-    /// Charge threshold used to create warning message.
-    threshold: u8,
     /// Names of KDE Connect devices which should be pinged.
     ///
     /// If this value is `None` every available KDE Connect device will pinged.
@@ -22,8 +20,8 @@ pub struct Notifier {
 impl PlatformNotifier for Notifier {
     type Error = error::KDEConnect;
 
-    fn notify(&mut self) -> result::Result<(), Self::Error> {
-        self.ping()?;
+    fn notify(&mut self, message: &Message) -> result::Result<(), Self::Error> {
+        self.ping(message)?;
 
         Ok(())
     }
@@ -37,9 +35,8 @@ impl PlatformNotifier for Notifier {
 
 impl Notifier {
     /// Create a new `KDEConnect` instance.
-    pub fn new(threshold: u8, device_names: HashSet<String>) -> Result<Self> {
+    pub fn new(device_names: HashSet<String>) -> Result<Self> {
         let notifier = Self {
-            threshold,
             device_names: if device_names.is_empty() {
                 log::info!(
                     "notification/kde_connect: no device names specified, \
@@ -65,10 +62,12 @@ impl Notifier {
     }
 
     /// Ping all available `Device` instances.
-    fn ping(&self) -> Result<()> {
-        self.find_available()?.iter().try_for_each(|device| {
-            device.ping(&common::warning_message(self.threshold))
-        })?;
+    fn ping(&self, message: &Message) -> Result<()> {
+        let message = format!("\"{}\n\n{}\"", message.summary, message.body);
+
+        self.find_available()?
+            .iter()
+            .try_for_each(|device| device.ping(&message))?;
 
         log::debug!("notification/kde_connect: available devices pinged");
 
@@ -111,12 +110,7 @@ mod std_fmt_impls {
                 },
             );
 
-            write!(
-                f,
-                "KDE Connect Notifier: \
-                threshold = {}%, device_names = {device_names}",
-                self.threshold,
-            )
+            write!(f, "KDE Connect Notifier: device_names = {device_names}",)
         }
     }
 } // std_fmt_impls

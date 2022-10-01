@@ -1,16 +1,6 @@
 use std::collections::HashSet;
 use std::{fmt, hash, io, process};
 
-use cached::proc_macro::cached;
-
-#[cached]
-pub fn warning_message(threshold: u8) -> String {
-    format!(
-        "Battery percentage reached the {threshold}% threshold, \
-        please unplug your charger",
-    )
-}
-
 pub fn vec_to_set<T>(v: Vec<T>) -> HashSet<T>
 where
     T: Eq + hash::Hash,
@@ -81,21 +71,6 @@ mod tests {
     use crate::error;
 
     use super::*;
-
-    #[test]
-    fn test_warning_message() {
-        let threshold = 50;
-
-        let result = warning_message(threshold);
-
-        assert_eq!(
-            result,
-            format!(
-                "Battery percentage reached the {threshold}% threshold, \
-                please unplug your charger",
-            )
-        );
-    }
 
     #[test]
     fn test_vec_to_set() {
