@@ -4,6 +4,7 @@ use notify_rust::{Notification, NotificationHandle, Urgency};
 
 use crate::common;
 use crate::error;
+use crate::notification::PlatformNotifier;
 
 type Result<T> = result::Result<T, error::Notification>;
 
@@ -11,6 +12,22 @@ type Result<T> = result::Result<T, error::Notification>;
 pub struct Notifier {
     threshold: u8,
     handle: Option<NotificationHandle>,
+}
+
+impl PlatformNotifier for Notifier {
+    type Error = error::Notification;
+
+    fn notify(&mut self) -> result::Result<(), Self::Error> {
+        self.show()?;
+
+        Ok(())
+    }
+
+    fn remove(&mut self) -> result::Result<(), Self::Error> {
+        self.close();
+
+        Ok(())
+    }
 }
 
 impl Notifier {
@@ -32,7 +49,7 @@ impl Notifier {
     /// created one via it's `update` method.
     ///
     /// Return a reference to the current `NotificationHandle`.
-    pub fn show(&mut self) -> Result<&NotificationHandle> {
+    fn show(&mut self) -> Result<&NotificationHandle> {
         if let Some(handle) = &mut self.handle {
             handle.update();
 
@@ -51,7 +68,7 @@ impl Notifier {
     /// If the `NotificationHandle` has not yet been created this is a noop.
     ///
     /// Return a bool whether the notification was closed.
-    pub fn close(&mut self) -> bool {
+    fn close(&mut self) -> bool {
         self.handle.take().map_or_else(
             || {
                 log::debug!("notification/desktop: handle not yet created");
@@ -107,7 +124,7 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Desktop: threshold = {}%, handle = {}",
+                "Desktop Notifier: threshold = {}%, handle = {}",
                 self.threshold,
                 common::format_option(
                     &self.handle.as_ref().map(NotificationHandle::id)
@@ -115,7 +132,7 @@ mod std_fmt_impls {
             )
         }
     }
-}
+} // std_fmt_impls
 
 #[cfg(test)]
 mod tests {
@@ -180,6 +197,6 @@ mod tests {
 
         let result = notifier.to_string();
 
-        assert_eq!(result, "Desktop: threshold = 0%, handle = None");
+        assert_eq!(result, "Desktop Notifier: threshold = 0%, handle = None");
     }
-}
+} // tests

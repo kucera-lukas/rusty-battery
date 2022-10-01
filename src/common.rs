@@ -1,8 +1,5 @@
 use std::collections::HashSet;
-use std::fmt::Display;
-use std::hash::Hash;
-use std::io;
-use std::process::{Command, Output};
+use std::{fmt, hash, io, process};
 
 use cached::proc_macro::cached;
 
@@ -16,21 +13,21 @@ pub fn warning_message(threshold: u8) -> String {
 
 pub fn vec_to_set<T>(v: Vec<T>) -> HashSet<T>
 where
-    T: Eq + Hash,
+    T: Eq + hash::Hash,
 {
     v.into_iter().collect()
 }
 
 pub fn warn_on_err<T, E>(prefix: &str, result: Result<T, E>) -> Option<T>
 where
-    E: Display,
+    E: fmt::Display,
 {
     result.map_err(|e| log::warn!("{prefix}: {e}")).ok()
 }
 
 pub fn print_slice<T>(slice: &[T])
 where
-    T: Display,
+    T: fmt::Display,
 {
     slice
         .iter()
@@ -40,7 +37,7 @@ where
 
 pub fn format_option<T>(option: &Option<T>) -> String
 where
-    T: Display,
+    T: fmt::Display,
 {
     match option {
         None => "None".into(),
@@ -71,10 +68,10 @@ pub fn slice_to_string(slice: &[u8]) -> String {
     String::from_utf8_lossy(slice).to_string()
 }
 
-pub fn command(args: &str) -> Result<Output, io::Error> {
+pub fn command(args: &str) -> Result<process::Output, io::Error> {
     log::debug!("common/command: sh -c \"{args}\"");
 
-    Command::new("sh").arg("-c").arg(args).output()
+    process::Command::new("sh").arg("-c").arg(args).output()
 }
 
 #[cfg(test)]

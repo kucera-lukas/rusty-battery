@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use std::sync::mpsc;
 
-use crate::battery::Device;
+use crate::device::Battery;
 use crate::{common, error, event, notification};
 
 pub fn notify(
@@ -19,7 +19,7 @@ pub fn notify(
         disable_desktop,
     )?;
 
-    let mut battery_device = Device::try_from(model)?;
+    let mut battery_device = Battery::try_from(model)?;
     let mut notifier = notification::Notifier::new(
         threshold,
         kde_connect_names.map(common::vec_to_set),

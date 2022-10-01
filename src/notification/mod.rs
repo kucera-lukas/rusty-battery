@@ -1,20 +1,35 @@
 use std::collections::HashSet;
 use std::result;
 
-use crate::common;
+pub use desktop::Notifier as DesktopNotifier;
+pub use kde_connect::Notifier as KDEConnectNotifier;
+
 use crate::error;
 
-pub mod desktop;
-pub mod kde_connect;
+mod desktop;
+mod kde_connect;
+mod operation;
 
 type Result<T> = result::Result<T, error::Error>;
+
+pub trait PlatformNotifier {
+    type Error: std::error::Error;
+
+    fn notify(&mut self) -> result::Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn remove(&mut self) -> result::Result<(), Self::Error> {
+        Ok(())
+    }
+}
 
 #[derive(Debug)]
 pub struct Notifier {
     pub threshold: u8,
 
-    desktop: Option<desktop::Notifier>,
-    kde_connect: Option<kde_connect::Notifier>,
+    desktop: Option<DesktopNotifier>,
+    kde_connect: Option<KDEConnectNotifier>,
 }
 
 impl Notifier {
@@ -33,11 +48,11 @@ impl Notifier {
         } else {
             log::info!("notification: desktop notifications enabled");
 
-            Some(desktop::Notifier::new(threshold))
+            Some(DesktopNotifier::new(threshold))
         };
 
-        let kde_connect: Result<Option<kde_connect::Notifier>> =
-            kde_connect_names.map_or_else(
+        let kde_connect: Result<Option<KDEConnectNotifier>> = kde_connect_names
+            .map_or_else(
                 || {
                     log::info!(
                         "notification: KDE Connect notifications disabled"
@@ -50,7 +65,7 @@ impl Notifier {
                         "notification: KDE Connect notifications enabled"
                     );
 
-                    Ok(Some(kde_connect::Notifier::new(threshold, names)?))
+                    Ok(Some(KDEConnectNotifier::new(threshold, names)?))
                 },
             );
 
@@ -63,29 +78,18 @@ impl Notifier {
 
     /// Send notification to every supported platform.
     pub fn notify(&mut self) {
-        if let Some(desktop) = &mut self.desktop {
-            common::warn_on_err("notification", desktop.show());
-        }
+        operation::notify(&mut self.desktop);
+        operation::notify(&mut self.kde_connect);
 
-        if let Some(kde_connect) = &self.kde_connect {
-            common::warn_on_err("notification", kde_connect.ping());
-        }
-
-        log::info!("notification: all notifications sent");
+        log::info!("notification: all sent");
     }
 
     /// Remove notification on every supported platform.
-    ///
-    /// Currently only desktop notifier is supported.
-    ///
-    /// KDE Connect notifier is not supported as we can't remove
-    /// the pinged notifications from the device.
     pub fn remove(&mut self) {
-        if let Some(desktop) = &mut self.desktop {
-            desktop.close();
-        }
+        operation::remove(&mut self.desktop);
+        operation::remove(&mut self.kde_connect);
 
-        log::info!("notification: all notifications removed");
+        log::info!("notification: all removed");
     }
 }
 
@@ -100,10 +104,10 @@ mod std_fmt_impls {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(
                 f,
-                "Notifier: desktop = {}, KDE Connect = {}",
+                "Notifier: Desktop = {}, KDE Connect = {}",
                 common::format_option(&self.desktop),
                 common::format_option(&self.kde_connect),
             )
         }
     }
-}
+} // std_fmt_impls

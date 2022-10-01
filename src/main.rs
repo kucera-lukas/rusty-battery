@@ -17,9 +17,9 @@
 
 use std::process;
 
-mod battery;
 mod cli;
 mod common;
+mod device;
 mod error;
 mod event;
 mod logger;
@@ -61,9 +61,9 @@ fn run_app() -> error::Result<()> {
 }
 
 fn batteries() -> error::Result<()> {
-    Ok(battery::print_devices()?)
+    device::Type::Battery.print()
 }
 
 fn kde_connect_devices() -> error::Result<()> {
-    Ok(notification::kde_connect::print_devices()?)
+    device::Type::KDEConnect.print()
 }
