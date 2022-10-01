@@ -4,11 +4,11 @@ use std::result;
 pub use desktop::Notifier as DesktopNotifier;
 pub use kde_connect::Notifier as KDEConnectNotifier;
 
-use crate::common;
 use crate::error;
 
 mod desktop;
 mod kde_connect;
+mod operation;
 
 type Result<T> = result::Result<T, error::Error>;
 
@@ -78,30 +78,18 @@ impl Notifier {
 
     /// Send notification to every supported platform.
     pub fn notify(&mut self) {
-        do_notify(&mut self.desktop);
-        do_notify(&mut self.kde_connect);
+        operation::notify(&mut self.desktop);
+        operation::notify(&mut self.kde_connect);
 
         log::info!("notification: all sent");
     }
 
     /// Remove notification on every supported platform.
     pub fn remove(&mut self) {
-        do_remove(&mut self.desktop);
-        do_remove(&mut self.kde_connect);
+        operation::remove(&mut self.desktop);
+        operation::remove(&mut self.kde_connect);
 
         log::info!("notification: all removed");
-    }
-}
-
-fn do_notify(notifier: &mut Option<impl PlatformNotifier>) {
-    if let Some(notifier) = notifier {
-        common::warn_on_err("notification", notifier.notify());
-    }
-}
-
-fn do_remove(notifier: &mut Option<impl PlatformNotifier>) {
-    if let Some(notifier) = notifier {
-        common::warn_on_err("notification", notifier.remove());
     }
 }
 
