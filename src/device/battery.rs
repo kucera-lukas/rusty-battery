@@ -2,7 +2,6 @@
 use std::convert::TryFrom;
 use std::result;
 
-use crate::common;
 use crate::error;
 
 type Result<T> = result::Result<T, error::Battery>;
@@ -26,7 +25,7 @@ pub struct Battery {
 }
 
 impl Battery {
-    /// Construct a new `BatteryDevice` instance.
+    /// Construct a new `Battery` instance.
     pub fn new(model: &str) -> Result<Self> {
         let battery = find(model)?;
 
@@ -62,7 +61,7 @@ impl Battery {
         percentage
     }
 
-    /// Refresh and return `BatteryState`.
+    /// Refresh and return `State`.
     fn refresh_state(&mut self) -> State {
         let state = fetch::state(&self.battery);
         self.state = state;
@@ -121,17 +120,8 @@ impl TryFrom<Option<&str>> for Battery {
     }
 }
 
-/// Print all available `BatteryDevice`s formatted in a readable way.
-///
-/// Acts as an high level API for the CLI `Batteries` subcommand.
-pub fn print() -> Result<()> {
-    common::print_slice(&all()?);
-
-    Ok(())
-}
-
-/// Return a `Vec` of all available `BatteryDevice` instances.
-fn all() -> Result<Vec<Battery>> {
+/// Return a `Vec` of all available `Battery` instances.
+pub(super) fn all() -> Result<Vec<Battery>> {
     iterator()?
         .map(|battery| Battery::try_from(battery?))
         .collect()
@@ -150,7 +140,7 @@ fn one() -> Result<battery::Battery> {
 
     match batteries.next() {
         None => {
-            log::error!("battery/one: 0 batteries found");
+            log::error!("device/battery: 0 batteries found");
 
             Err(error::Battery::NotFound {
                 model: error::Model(None),
@@ -158,12 +148,12 @@ fn one() -> Result<battery::Battery> {
         }
         Some(battery) => match batteries.next() {
             None => {
-                log::info!("battery/one: single battery found");
+                log::info!("device/battery: single battery found");
 
                 Ok(battery?)
             }
             Some(_) => {
-                log::error!("battery/one: more than 1 battery found");
+                log::error!("device/battery: more than 1 battery found");
 
                 Err(error::Battery::NotFound {
                     model: error::Model(None),
@@ -227,7 +217,7 @@ mod fetch {
         percentage
     }
 
-    /// Fetch `BatteryState` of the given `battery::Battery` device.
+    /// Fetch `State` of the given `battery::Battery` device.
     pub fn state(device: &battery::Battery) -> State {
         let state = match device.state() {
             battery::State::Charging | battery::State::Full => State::Charging,

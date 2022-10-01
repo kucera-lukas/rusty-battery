@@ -16,7 +16,7 @@ pub struct KDEConnect {
 }
 
 impl KDEConnect {
-    /// Ping the given `KDEConnectDevice` via the `ping-msg` option.
+    /// Ping the given `KDEConnect` via the `ping-msg` option.
     pub fn ping(&self, message: &str) -> Result<()> {
         log::trace!("device/kde_connect: pinging {}", self.id);
 
@@ -51,39 +51,28 @@ impl TryFrom<&str> for KDEConnect {
     }
 }
 
-/// Print all `KDEConnectDevice` instances formatted in a readable way.
-///
-/// Acts as an high level API for the CLI `KDEConnectDevices` subcommand.
-pub fn print() -> Result<()> {
-    common::print_slice(
-        &map::all()?.into_values().collect::<Vec<KDEConnect>>(),
-    );
-
-    Ok(())
-}
-
 pub mod map {
     use super::{list, HashMap, KDEConnect, Result};
 
-    /// Return a mapping between name and its corresponding `Device` instance.
+    /// Return a mapping between name and its `KDEConnect` instance.
     ///
     /// `Device`s are collected via the `list-devices` KDE Connect CLI option.
     pub fn all() -> Result<HashMap<String, KDEConnect>> {
-        map(&list::all()?)
+        parse(&list::all()?)
     }
 
-    /// Return a mapping between name and its `KDEConnectDevice` instance.
+    /// Return a mapping between name and its `KDEConnect` instance.
     ///
-    /// `KDEConnectDevice`s are collected via the
+    /// `KDEConnect`s are collected via the
     /// `list-available` KDE Connect CLI option.
     pub fn available() -> Result<HashMap<String, KDEConnect>> {
-        map(&list::available()?)
+        parse(&list::available()?)
     }
 
-    /// Return a mapping between name and its `KDEConnectDevice` instance.
+    /// Return a mapping between name and its `KDEConnect` instance.
     ///
     /// Data is parsed from the given string.
-    fn map(list: &str) -> Result<HashMap<String, KDEConnect>> {
+    fn parse(list: &str) -> Result<HashMap<String, KDEConnect>> {
         list.lines()
             .map(|line| {
                 let device = KDEConnect::try_from(line)?;
@@ -97,9 +86,9 @@ pub mod map {
 } // map
 
 pub mod find {
-    use super::{common, error, result, HashMap, HashSet, KDEConnect};
+    use super::{common, error, HashMap, HashSet, KDEConnect};
 
-    /// Search the `HashMap` for `KDEConnectDevice`s with name in the `HashSet`.
+    /// Search the `HashMap` for `KDEConnect`s with name in the `HashSet`.
     pub fn all(
         devices: &mut HashMap<String, KDEConnect>,
         names: &HashSet<String>,
@@ -112,11 +101,11 @@ pub mod find {
             .collect()
     }
 
-    /// Search the `HashMap` for a `KDEConnectDevice` with the name.
+    /// Search the `HashMap` for a `KDEConnect` with the name.
     pub fn one(
         devices: &mut HashMap<String, KDEConnect>,
         name: &str,
-    ) -> result::Result<KDEConnect, error::KDEConnectDevice> {
+    ) -> Result<KDEConnect, error::KDEConnectDevice> {
         devices
             .remove(name)
             .ok_or(error::KDEConnectDevice::NotFound { name: name.into() })

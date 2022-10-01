@@ -61,9 +61,9 @@ fn run_app() -> error::Result<()> {
 }
 
 fn batteries() -> error::Result<()> {
-    Ok(device::battery::print()?)
+    device::Type::Battery.print()
 }
 
 fn kde_connect_devices() -> error::Result<()> {
-    Ok(device::kde_connect::print()?)
+    device::Type::KDEConnect.print()
 }
