@@ -25,60 +25,71 @@ showing a desktop notification and optionally pinging your
 
 Notify whenever battery percentage exceeds the given threshold
 
-USAGE:
+<ins>Usage:</ins> `rusty-battery notify [OPTIONS]`
 
-    rusty-battery notify [OPTIONS]
+<ins>Options:</ins>
 
-OPTIONS:
+    -t, --threshold <THRESHOLD>
+            Battery charge threshold
 
-    --disable-desktop
-            Disable desktop notifications
+            Whenever the chosen battery device reaches this charge threshold and will be charging, notifications will be sent, alerting that the charger should be unplugged.
 
-            Specify this flag if you don't want desktop notifications to be shown whenever the
-            chosen battery percentage exceeds the given threshold.
+            [minimum: 0] [maximum: 100]
 
-    -h, --help
-            Print help information
+            [default: 80]
 
-    --kde-connect [<KDE_CONNECT_NAMES>...]
+    -v, --verbose...
+            More output per occurrence
+
+    -m, --model <MODEL>
+            Battery model name
+
+            If this value is omitted and only battery device is found for the current device, that one will be used.
+
+            Otherwise, please use the `batteries` subcommand to get a list of all battery devices to get the model of the wanted battery device which should be monitored.
+
+    -q, --quiet...
+            Less output per occurrence
+
+        --refresh-secs <REFRESH_SECS>
+            Number of seconds to wait before refreshing battery device data
+
+            After every battery device refresh, its data will be checked. Notifications will be sent everytime they should be, based on the new refreshed battery device data.
+
+            [default: 30]
+
+        --summary <SUMMARY>
+            Notification summary
+
+            Supported variables: THRESHOLD, CHARGE_STATE, MODEL, REFRESH_SECS
+
+            Reference these variables in your summary like shell environment variables with the '$' prefix.
+
+            [default: "Charge limit warning"]
+
+        --body <BODY>
+            Notification body
+
+            Supported variables: THRESHOLD, CHARGE_STATE, MODEL, REFRESH_SECS
+
+            Reference these variables in your body like shell environment variables with the '$' prefix.
+
+            [default: "Battery percentage reached the $THRESHOLD% threshold, please unplug your charger"]
+
+        --kde-connect [<KDE_CONNECT_NAMES>...]
             KDE Connect device names
 
             If this value is not present, KDE Connect will not be used.
 
             If this value is empty, all of the KDE Connect devices will be pinged.
 
-    -m, --model <MODEL>
-            Battery model name
+        --disable-desktop
+            Disable desktop notifications
 
-            If this value is omitted and only battery device is found for the current device, that
-            one will be used.
+            Specify this flag if you don't want desktop notifications to be shown whenever the chosen battery percentage exceeds the given threshold.
 
-            Otherwise, please use the `batteries` subcommand to get a list of all battery devices to
-            get the model of the wanted battery device which should be monitored.
-
-    -q, --quiet
-            Less output per occurrence
-
-    --refresh-secs <REFRESH_SECS>
-            Number of seconds to wait before refreshing battery device data
-
-            After every battery device refresh, its data will be checked. Notifications will be sent
-            everytime they should be, based on the new refreshed battery device data.
-
-            [default: 30]
-
-    -t, --threshold <THRESHOLD>
-            Battery charge threshold
-
-            Whenever the chosen battery device reaches this charge threshold and will be charging,
-            notifications will be sent, alerting that the charger should be unplugged.
-
-            [minimum: 0] [maximum: 100]
-
-            [default: 80]
-
-    -v, --verbose
-            More output per occurrence
+    -h, --help
+            Print help information (use `-h` for a summary)
 
     -V, --version
             Print version information
@@ -87,11 +98,9 @@ OPTIONS:
 
 List all available batteries of the current device
 
-USAGE:
+<ins>Usage:</ins> `rusty-battery batteries [OPTIONS]`
 
-    rusty-battery batteries [OPTIONS]
-
-OPTIONS:
+<ins>Options:</ins>
 
     -h, --help       Print help information
     -q, --quiet      Less output per occurrence
@@ -102,11 +111,9 @@ OPTIONS:
 
 List all available KDE Connect devices
 
-USAGE:
+<ins>Usage:</ins> `rusty-battery kde-connect-devices [OPTIONS]`
 
-    rusty-battery kde-connect-devices [OPTIONS]
-
-OPTIONS:
+<ins>Options:</ins>
 
     -h, --help       Print help information
     -q, --quiet      Less output per occurrence
