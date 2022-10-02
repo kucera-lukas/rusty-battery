@@ -58,10 +58,17 @@ pub fn slice_to_string(slice: &[u8]) -> String {
     String::from_utf8_lossy(slice).to_string()
 }
 
-pub fn command(args: &str) -> Result<process::Output, io::Error> {
-    log::debug!("common/command: sh -c \"{args}\"");
+pub fn command(
+    program: &str,
+    args: &[&str],
+) -> Result<process::Output, io::Error> {
+    let mut command = process::Command::new(program);
 
-    process::Command::new("sh").arg("-c").arg(args).output()
+    command.args(args);
+
+    log::debug!("common/command: {:#?}", command);
+
+    command.output()
 }
 
 #[cfg(test)]

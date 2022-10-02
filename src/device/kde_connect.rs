@@ -128,8 +128,7 @@ mod list {
 /// Warn if any data is passed into stderr.
 /// Return stdout data.
 fn execute(args: &[&str]) -> Result<String> {
-    let output =
-        common::command(&format!("kdeconnect-cli {}", args.join(" ")))?;
+    let output = common::command("kdeconnect-cli", args)?;
 
     let stderr = common::slice_to_string(output.stderr.as_slice());
     if !stderr.is_empty() {

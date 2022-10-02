@@ -63,7 +63,7 @@ impl Notifier {
 
     /// Ping all available `Device` instances.
     fn ping(&self, message: &Message) -> Result<()> {
-        let message = format!("\"{}\n\n{}\"", message.summary, message.body);
+        let message = format!("{}\n\n{}", message.summary, message.body);
 
         self.find_available()?
             .iter()
