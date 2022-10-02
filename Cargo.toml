@@ -1,6 +1,6 @@
 [package]
 name = "rusty-battery"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 description = "CLI tool which notifies you when laptop battery reaches a threshold."
 authors = ["Lukas Kucera <lukas.kucera.g@gmail.com>"]
