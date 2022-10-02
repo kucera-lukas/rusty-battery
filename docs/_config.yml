@@ -1,0 +1,7 @@
+title: rusty-battery
+logo: assets/img/logo.png
+favicon: assets/img/favicon.ico
+description: CLI tool which notifies you when laptop battery reaches a threshold.
+show_downloads: true
+google_analytics: G-QCSM8LEE0W
+theme: jekyll-theme-minimal
