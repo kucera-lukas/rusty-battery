@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/kucera-lukas/rusty-battery/compare/v0.6.0...v0.6.1) (2022-10-02)
+
+
+### Miscellaneous Chores
+
+* update readme file path in Cargo.toml ([932dc81](https://github.com/kucera-lukas/rusty-battery/commit/932dc8140e29eeda76ec04eed8f7ff95980d232f))
+
 ## [0.6.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.5.0...v0.6.0) (2022-10-02)
 
 ### Features
