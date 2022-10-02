@@ -2,12 +2,11 @@
 
 ## [0.6.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.5.0...v0.6.0) (2022-10-02)
 
-
 ### Features
 
-* add custom notification summary and body ([#138](https://github.com/kucera-lukas/rusty-battery/issues/138)) ([3012e90](https://github.com/kucera-lukas/rusty-battery/commit/3012e90568e8c7a4e4669eaeca0f8f9390c1c529))
-* add Google Analytics ([#139](https://github.com/kucera-lukas/rusty-battery/issues/139)) ([5f3ff72](https://github.com/kucera-lukas/rusty-battery/commit/5f3ff72b030f1c17abeab8ec3fdbd3373a8b0e30))
-* refactor notification module ([#136](https://github.com/kucera-lukas/rusty-battery/issues/136)) ([1c3dead](https://github.com/kucera-lukas/rusty-battery/commit/1c3dead17e409ce388803554d9bb6e00e58fa680))
+- add custom notification summary and body ([#138](https://github.com/kucera-lukas/rusty-battery/issues/138)) ([3012e90](https://github.com/kucera-lukas/rusty-battery/commit/3012e90568e8c7a4e4669eaeca0f8f9390c1c529))
+- add Google Analytics ([#139](https://github.com/kucera-lukas/rusty-battery/issues/139)) ([5f3ff72](https://github.com/kucera-lukas/rusty-battery/commit/5f3ff72b030f1c17abeab8ec3fdbd3373a8b0e30))
+- refactor notification module ([#136](https://github.com/kucera-lukas/rusty-battery/issues/136)) ([1c3dead](https://github.com/kucera-lukas/rusty-battery/commit/1c3dead17e409ce388803554d9bb6e00e58fa680))
 
 ## [0.5.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.4.0...v0.5.0) (2022-09-30)
 
