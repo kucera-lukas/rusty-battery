@@ -3,7 +3,7 @@ use std::time;
 use std::{process, result};
 
 use crate::device::BatteryState;
-use crate::notification::Notifier;
+use crate::notification::{Message, Notifier};
 use crate::{device, error};
 
 type Result<T> = result::Result<T, error::Error>;
@@ -11,8 +11,9 @@ type Result<T> = result::Result<T, error::Error>;
 /// Loop infinitely processing battery charge threshold events.
 pub fn loop_(
     shutdown_receiver: &mpsc::Receiver<()>,
-    battery_device: &mut device::Battery,
-    notifier: &mut Notifier,
+    mut battery_device: device::Battery,
+    mut message: Message,
+    mut notifier: Notifier,
     refresh_secs: u64,
 ) -> Result<()> {
     log::info!(
@@ -25,15 +26,16 @@ pub fn loop_(
         if battery_device.percentage >= notifier.threshold
             && battery_device.state == BatteryState::Charging
         {
-            notifier.notify();
+            notifier.notify(&message);
         } else {
             notifier.remove();
         }
 
-        wait_and_refresh(
+        wait_and_update(
             shutdown_receiver,
-            battery_device,
-            notifier,
+            &mut battery_device,
+            &mut message,
+            &mut notifier,
             refresh_duration,
         )?;
     }
@@ -57,17 +59,18 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
     Ok(())
 }
 
-/// Wait on the given `Receiver` and refresh the given battery `Device`.
+/// Wait on the given `Receiver` and update relevant structs.
 ///
 /// If `Receiver` receives a value within the given `Duration`
 /// handle the process shutdown.
 ///
-/// If the `Receiver` times out refresh the given `Device`.
+/// If the `Receiver` times out perform the updates.
 ///
 /// If the other half of the `Receiver` channel gets disconnected return error.
-fn wait_and_refresh(
+fn wait_and_update(
     shutdown_receiver: &mpsc::Receiver<()>,
     battery_device: &mut device::Battery,
+    message: &mut Message,
     notifier: &mut Notifier,
     refresh_duration: time::Duration,
 ) -> Result<()> {
@@ -82,6 +85,7 @@ fn wait_and_refresh(
                 log::trace!("event: {e}");
 
                 battery_device.refresh()?;
+                message.update(battery_device);
 
                 Ok(())
             }

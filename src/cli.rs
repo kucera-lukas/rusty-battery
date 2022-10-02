@@ -50,8 +50,30 @@ pub enum Command {
         /// After every battery device refresh, its data will be checked.
         /// Notifications will be sent everytime they should be, based on the
         /// new refreshed battery device data.
-        #[clap(long, default_value_t = 30)]
+        #[arg(long, default_value_t = 30)]
         refresh_secs: u64,
+
+        /// Notification summary
+        ///
+        /// Supported variables: THRESHOLD, CHARGE_STATE, MODEL, REFRESH_SECS
+        ///
+        /// Reference these variables in your summary like shell environment
+        /// variables with the '$' prefix.
+        #[arg(long, default_value_t = String::from("Charge limit warning"))]
+        summary: String,
+
+        /// Notification body
+        ///
+        /// Supported variables: THRESHOLD, CHARGE_STATE, MODEL, REFRESH_SECS
+        ///
+        /// Reference these variables in your body like shell environment
+        /// variables with the '$' prefix.
+        #[arg(
+            long,
+            default_value_t = String::from("Battery percentage reached the \
+            $THRESHOLD% threshold, please unplug your charger")
+        )]
+        body: String,
 
         /// KDE Connect device names
         ///
@@ -78,4 +100,16 @@ pub enum Command {
 
 pub fn parse() -> Cli {
     Cli::parse()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Cli;
+
+    #[test]
+    fn test_cli() {
+        use clap::CommandFactory;
+
+        Cli::command().debug_assert();
+    }
 }

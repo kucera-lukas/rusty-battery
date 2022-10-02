@@ -1,16 +1,6 @@
 use std::collections::HashSet;
 use std::{fmt, hash, io, process};
 
-use cached::proc_macro::cached;
-
-#[cached]
-pub fn warning_message(threshold: u8) -> String {
-    format!(
-        "Battery percentage reached the {threshold}% threshold, \
-        please unplug your charger",
-    )
-}
-
 pub fn vec_to_set<T>(v: Vec<T>) -> HashSet<T>
 where
     T: Eq + hash::Hash,
@@ -35,7 +25,7 @@ where
         .for_each(|(index, item)| println!("{}. {item}", index + 1));
 }
 
-pub fn format_option<T>(option: &Option<T>) -> String
+pub fn format_option<T>(option: Option<T>) -> String
 where
     T: fmt::Display,
 {
@@ -68,10 +58,17 @@ pub fn slice_to_string(slice: &[u8]) -> String {
     String::from_utf8_lossy(slice).to_string()
 }
 
-pub fn command(args: &str) -> Result<process::Output, io::Error> {
-    log::debug!("common/command: sh -c \"{args}\"");
+pub fn command(
+    program: &str,
+    args: &[&str],
+) -> Result<process::Output, io::Error> {
+    let mut command = process::Command::new(program);
 
-    process::Command::new("sh").arg("-c").arg(args).output()
+    command.args(args);
+
+    log::debug!("common/command: {:#?}", command);
+
+    command.output()
 }
 
 #[cfg(test)]
@@ -81,21 +78,6 @@ mod tests {
     use crate::error;
 
     use super::*;
-
-    #[test]
-    fn test_warning_message() {
-        let threshold = 50;
-
-        let result = warning_message(threshold);
-
-        assert_eq!(
-            result,
-            format!(
-                "Battery percentage reached the {threshold}% threshold, \
-                please unplug your charger",
-            )
-        );
-    }
 
     #[test]
     fn test_vec_to_set() {
@@ -140,7 +122,7 @@ mod tests {
     fn test_format_option_none() {
         let option: Option<&str> = None;
 
-        let result = format_option(&option);
+        let result = format_option(option);
 
         assert_eq!("None", result);
     }
@@ -149,7 +131,7 @@ mod tests {
     fn test_format_option_some() {
         let option: Option<&str> = Some("123");
 
-        let result = format_option(&option);
+        let result = format_option(option);
 
         assert_eq!("123", result);
     }
