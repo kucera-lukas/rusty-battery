@@ -1,4 +1,4 @@
-#![doc = include_str ! ("../README.md")]
+#![doc = include_str ! ("../docs/README.md")]
 #![doc(
     html_favicon_url = "https://raw.githubusercontent.com/kucera-lukas/rusty-battery/main/assets/img/favicon.ico",
     html_logo_url = "https://raw.githubusercontent.com/kucera-lukas/rusty-battery/main/assets/img/logo.png"
