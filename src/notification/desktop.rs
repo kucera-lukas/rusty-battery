@@ -56,7 +56,9 @@ impl Notifier {
 
             log::debug!("notification/desktop: cached notification shown");
         } else {
-            self.handle = Some(create_notification(message).show()?);
+            self.handle = Some(
+                create_notification(&message.summary, &message.body).show()?,
+            );
 
             log::debug!("notification/desktop: notification shown and cached");
         }
@@ -91,18 +93,18 @@ impl Notifier {
 }
 
 /// Create a new desktop notification with the given summary and body.
-fn create_notification(message: &Message) -> Notification {
+fn create_notification(summary: &str, body: &str) -> Notification {
     log::trace!(
         "notification/desktop: creating notification with \
         summary = \"{}\" and body = \"{}\"",
-        message.summary,
-        message.body,
+        summary,
+        body,
     );
 
     Notification::new()
         .appname(APP_NAME)
-        .summary(&message.summary)
-        .body(&message.body)
+        .summary(summary)
+        .body(body)
         .icon(ICON)
         .timeout(Timeout::Never)
         .urgency(Urgency::Critical)
@@ -124,7 +126,7 @@ mod std_fmt_impls {
                 f,
                 "Desktop Notifier: handle = {}",
                 common::format_option(
-                    &self.handle.as_ref().map(NotificationHandle::id)
+                    self.handle.as_ref().map(NotificationHandle::id)
                 )
             )
         }
@@ -139,7 +141,6 @@ mod tests {
 
     use super::*;
 
-    #[allow(dead_code)]
     fn assert_notification(
         notification: &Notification,
         summary: &str,
@@ -170,5 +171,15 @@ mod tests {
         let result = notifier.to_string();
 
         assert_eq!(result, "Desktop Notifier: handle = None");
+    }
+
+    #[test]
+    fn test_create_notification() {
+        let summary = "test-summary";
+        let body = "test-body";
+
+        let notification = create_notification(summary, body);
+
+        assert_notification(&notification, summary, body);
     }
 } // tests

@@ -25,7 +25,7 @@ where
         .for_each(|(index, item)| println!("{}. {item}", index + 1));
 }
 
-pub fn format_option<T>(option: &Option<T>) -> String
+pub fn format_option<T>(option: Option<T>) -> String
 where
     T: fmt::Display,
 {
@@ -115,7 +115,7 @@ mod tests {
     fn test_format_option_none() {
         let option: Option<&str> = None;
 
-        let result = format_option(&option);
+        let result = format_option(option);
 
         assert_eq!("None", result);
     }
@@ -124,7 +124,7 @@ mod tests {
     fn test_format_option_some() {
         let option: Option<&str> = Some("123");
 
-        let result = format_option(&option);
+        let result = format_option(option);
 
         assert_eq!("123", result);
     }

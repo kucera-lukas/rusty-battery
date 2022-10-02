@@ -64,7 +64,7 @@ pub fn set_handler(shutdown_sender: mpsc::Sender<()>) -> Result<()> {
 /// If `Receiver` receives a value within the given `Duration`
 /// handle the process shutdown.
 ///
-/// If the `Receiver` times out refresh the given `Device`.
+/// If the `Receiver` times out perform the updates.
 ///
 /// If the other half of the `Receiver` channel gets disconnected return error.
 fn wait_and_update(

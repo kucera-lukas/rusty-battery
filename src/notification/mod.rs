@@ -103,8 +103,8 @@ mod std_fmt_impls {
             write!(
                 f,
                 "Notifier: Desktop = {}, KDE Connect = {}",
-                common::format_option(&self.desktop),
-                common::format_option(&self.kde_connect),
+                common::format_option(self.desktop.as_ref()),
+                common::format_option(self.kde_connect.as_ref()),
             )
         }
     }

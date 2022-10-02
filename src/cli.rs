@@ -101,3 +101,15 @@ pub enum Command {
 pub fn parse() -> Cli {
     Cli::parse()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Cli;
+
+    #[test]
+    fn test_cli() {
+        use clap::CommandFactory;
+
+        Cli::command().debug_assert();
+    }
+}
