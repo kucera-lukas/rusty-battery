@@ -13,7 +13,7 @@ keywords = ["cli", "battery", "notification", "kdeconnect", "linux"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-clap = { version = "4.0.2", features = ["derive"] }
+clap = { version = "4.0.8", features = ["derive"] }
 clap-verbosity-flag = "2.0.0"
 battery = "0.7.8"
 notify-rust = "4"
