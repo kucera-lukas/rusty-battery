@@ -63,10 +63,10 @@ impl Notifier {
             log::debug!("notification/desktop: notification shown and cached");
         }
 
-        Ok(match self.handle.as_ref() {
-            Some(handle) => handle,
-            None => unreachable!(),
-        })
+        Ok(self
+            .handle
+            .as_ref()
+            .map_or_else(|| unreachable!(), |handle| handle))
     }
 
     /// Close the current desktop notification if it exists.

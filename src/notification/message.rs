@@ -18,8 +18,8 @@ impl Message {
         refresh_secs: u64,
     ) -> Self {
         let mut message = Self {
-            summary: "".into(),
-            body: "".into(),
+            summary: String::new(),
+            body: String::new(),
             summary_template,
             body_template,
         };
