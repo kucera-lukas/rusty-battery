@@ -37,7 +37,7 @@ mod tests {
     use super::*;
 
     fn init_log() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        let _init = env_logger::builder().is_test(true).try_init();
     }
 
     #[test]
@@ -58,9 +58,7 @@ mod tests {
     fn assert_create_builder(level_filter: LevelFilter) {
         let builder = create_builder(level_filter);
 
-        assert!(
-            format!("{:?}", builder).contains(&format!("{:?}", level_filter))
-        );
+        assert!(format!("{builder:?}").contains(&format!("{level_filter:?}")));
     }
 
     #[test]

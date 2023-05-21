@@ -29,10 +29,7 @@ pub fn format_option<T>(option: Option<T>) -> String
 where
     T: fmt::Display,
 {
-    match option {
-        None => "None".into(),
-        Some(value) => format!("{value}"),
-    }
+    option.map_or_else(|| "None".into(), |value| format!("{value}"))
 }
 
 pub fn format_string_set(set: &HashSet<String>) -> String {
