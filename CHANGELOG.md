@@ -2,10 +2,9 @@
 
 ## [0.7.0](https://github.com/kucera-lukas/rusty-battery/compare/v0.6.1...v0.7.0) (2023-05-27)
 
-
 ### Features
 
-* systemd configuration ([#195](https://github.com/kucera-lukas/rusty-battery/issues/195)) ([8268a8b](https://github.com/kucera-lukas/rusty-battery/commit/8268a8b81138b92ed531a26263e2dcd7d711cbbe))
+- systemd configuration ([#195](https://github.com/kucera-lukas/rusty-battery/issues/195)) ([8268a8b](https://github.com/kucera-lukas/rusty-battery/commit/8268a8b81138b92ed531a26263e2dcd7d711cbbe))
 
 ## [0.6.1](https://github.com/kucera-lukas/rusty-battery/compare/v0.6.0...v0.6.1) (2022-10-02)
 
