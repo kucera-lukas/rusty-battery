@@ -6,7 +6,7 @@
 
 CLI tool which notifies you when laptop battery reaches a threshold.
 
-# Why should you use `rusty-battery`?
+## Why should you use `rusty-battery`?
 
 If you aren't able to set start/stop charge threshold
 (for example via [TLP](https://linrunner.de/tlp/)) but would still like to
@@ -15,13 +15,13 @@ make sure that your battery won't exceed your preferred threshold.
 showing a desktop notification and optionally pinging your
 [KDE Connect](https://kdeconnect.kde.org/) devices.
 
-# Features
+## Features
 
 - [notify](#notify)
 - [batteries](#batteries)
 - [kde-connect-devices](#kde-connect-devices)
 
-## notify
+### notify
 
 Notify whenever battery percentage exceeds the given threshold
 
@@ -94,7 +94,7 @@ Notify whenever battery percentage exceeds the given threshold
     -V, --version
             Print version information
 
-## batteries
+### batteries
 
 List all available batteries of the current device
 
@@ -107,7 +107,7 @@ List all available batteries of the current device
     -v, --verbose    More output per occurrence
     -V, --version    Print version information
 
-## kde-connect-devices
+### kde-connect-devices
 
 List all available KDE Connect devices
 
@@ -120,15 +120,15 @@ List all available KDE Connect devices
     -v, --verbose    More output per occurrence
     -V, --version    Print version information
 
-# Installation
+## Installation
 
-## From [crates.io](https://crates.io/crates/rusty-battery)
+### From [crates.io](https://crates.io/crates/rusty-battery)
 
 ```sh
 cargo install rusty-battery
 ```
 
-## From [source](https://github.com/kucera-lukas/rusty-battery)
+### From [source](https://github.com/kucera-lukas/rusty-battery)
 
 1. Clone the repository
 
@@ -148,7 +148,7 @@ cd rusty-battery
 cargo install --path .
 ```
 
-## From [release page](https://github.com/kucera-lukas/rusty-battery/releases)
+### From [release page](https://github.com/kucera-lukas/rusty-battery/releases)
 
 Download a binary of the
 [latest release](https://github.com/kucera-lukas/rusty-battery/releases/latest)
@@ -161,9 +161,48 @@ chmod +x rusty-battery
 
 If there are any problems with the pre-compiled binaries, file an issue.
 
-# Usage tips
+## Usage tips
 
-This tool is best used when set up as a background task.
+`rusty-battery` is best used when set up to start running in the background when the system boots.
+
+### Systemd service configuration
+
+Creating a systemd service is probably the easiest way to setup `rusty-battery`.
+
+1. Create the file `~/.config/systemd/user/rusty-battery.service`
+
+   This will create a user specific service. You can learn more on the [ArchWiki](https://wiki.archlinux.org/title/Systemd/User).
+
+2. You can use the example service in `examples/systemd` and put it into the service file.
+
+   Depending on the way how you installed rusty-battery you might need to modify the `ExecStart` value in the `Service` section. It should point to the location of the `rusty-battery` binary.
+
+   If you don't know where is `rusty-battery` installed but it's on your path, you can run `which rusty-battery`.
+
+3. Modify the rest of the CLI options
+
+4. Reload the systemd manager configuration
+
+   ```sh
+   systemctl --user daemon-reload
+   ```
+
+5. Start the systemd service
+
+   ```sh
+   systemctl --user start rusty-battery
+   ```
+
+6. Check the `rusty-battery` service status
+
+   ```sh
+   systemctl --user status rusty-battery
+   ```
+
+7. Enable the `rusty-battery` service to run on each boot
+   ```sh
+   systemctl --user enable rusty-battery
+   ```
 
 ### Setup with `cron`
 
@@ -182,15 +221,15 @@ crontab -e
 reboot
 ```
 
-### Logging
+#### Logging
 
-1. Choose the log verbosity via the `-v` or `--verbose` flag
+1. Choose the log verbosity via the number of occurences of the `-v` or `--verbose` flag
 2. Append it to the `rusty-battery` command
 3. Redirect output via `>> /path/to/log/file 2>&1`
 4. Check all logs via
 
 ```sh
-more /path/to/log/file
+less /path/to/log/file
 ```
 
 - Check live logs:
@@ -201,7 +240,7 @@ tail -f /path/to/log/file
 
 - `2>&1` [explanation](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean)
 
-### Debugging
+#### Debugging
 
 - [Here is a useful thread](https://askubuntu.com/questions/23009/why-crontab-scripts-are-not-working)
   for crontab debugging
@@ -217,9 +256,9 @@ ps aux | grep -e rusty-battery
 kill $PID
 ```
 
-# Device support
+## Device support
 
 Tested on:
 
-- OS: Fedora 34, 35, 36
+- OS: Fedora 34, 35, 36, 37, 38
 - DE: Plasma

@@ -1,0 +1,11 @@
+[Unit]
+Description=Notify when battery reaches a threshold
+Documentation=https://github.com/kucera-lukas/rusty-battery
+
+[Service]
+Type=simple
+ExecStart=%h/.cargo/bin/rusty-battery notify --threshold 80 --kde-connect -vv
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
