@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.5.3
 
       - name: Install minimal ${{ matrix.toolchain }} with rustfmt and clippy
         uses: actions-rs/toolchain@v1
